@@ -4,10 +4,10 @@ function [emg_data, emg_timestamp, emg_bounds, emg_label, emg_framerate] = load_
 % 
 % column_names = csv_table.Properties.VariableNames;
 % emg_timestamp = csv_table.('time')';
-fid = fopen([path_to_csv_file, csv_file_name], 'r'); 
+fid = fopen(fullfile(path_to_csv_file, csv_file_name), 'r'); 
 column_names = strsplit(fgetl(fid), ','); 
 fclose(fid);
-emg_data = csvread([path_to_csv_file, csv_file_name], 1, 0);
+emg_data = csvread(fullfile(path_to_csv_file, csv_file_name), 1, 0);
 emg_timestamp = emg_data(:, 1)';
 
 emg_framerate = round(length(emg_timestamp) / (emg_timestamp(end) - emg_timestamp(1)) * 1000); % in Hz -- from miliseconds
@@ -26,7 +26,7 @@ splitted{3} = 'gaitEvents';
 yaml_file_name = strjoin(splitted, '_');
 yaml_file_name(end-2:end) = 'yml';
 
-gait_events = read_yaml([path_to_csv_file, yaml_file_name]);
+gait_events = read_yaml(fullfile(path_to_csv_file, yaml_file_name));
 events = gait_events.([body_side(1) '_heel_strike']);
 events = events((events >= min(emg_timestamp)) & (events <= max(emg_timestamp)));
 [~, closest_idx] = min(abs(bsxfun(@minus, repmat(emg_timestamp', [1, length(events)]), events*1000))); % find closest

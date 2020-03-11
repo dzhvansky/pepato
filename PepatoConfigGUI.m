@@ -336,8 +336,8 @@ classdef PepatoConfigGUI < handle
                 if mod(config.n_synergies_max, 1) ~= 0
                     message = [message, '- Max number of synergies must be an integer\n\n'];
                 else
-                    if (config.n_synergies_max < 2) || (config.n_synergies_max > length(obj.parent_obj.data.all_muscles))
-                        message = [message, '- Max number of synergies must be greater then 1 and less than (Number of muscles + 1)\n\n'];
+                    if config.n_synergies_max < 2
+                        message = [message, '- Max number of synergies must be greater then 1\n\n'];
                     end
                 end                
             end

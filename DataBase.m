@@ -60,9 +60,8 @@ classdef DataBase
             catch except
                 obj.logger.message('WARNING', 'Modules database does not exist or is corrupted. Creating empty database.', except);
                 
-                muscle_list = obj.parent_obj.data.muscle_list;  
+                muscle_list = obj.parent_obj.data.muscle_list;
                 obj.database= array2table(zeros(0, 216));
-                disp(muscle_list);
                 obj.database.Properties.VariableNames = [obj.index_columns, strcat(muscle_list, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:200)))];
                 
                 obj.save_database();

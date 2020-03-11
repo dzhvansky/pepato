@@ -22,12 +22,12 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 
 `>>> pkg load statistics`
 ### Run
-`>>> pepato_basic('left');` 
-- Set body side
+`>>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'database_octave.mat', []);` 
+- Set input_folder, output_folder, body_side, config parameters, database filename and list of muscles (optional)
 
 
 ## MATLAB version >= 2015b
 (full functionality, advanced GUI)
 ### Run
 `>>> PEPATO(8, 'left', 'default_config.mat', 'test_database.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});` 
-- Set GUI font size, body side, name of config file, name of database file and muscle list
+- Set GUI font size, body side, name of config file, name of database file and muscle list (optional)
