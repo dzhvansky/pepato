@@ -59,7 +59,13 @@ classdef PepatoApp < handle
     
     methods
         
-        function obj = PepatoApp(FontSize, body_side)
+        function obj = PepatoApp(FontSize, body_side, config_filename, database_filename, muscle_list)
+            if nargin < 6
+                muscle_list_to_print = {''};
+            else
+                muscle_list_to_print = muscle_list;
+            end
+            
             obj.body_side = body_side;
             
             obj.figure_handle = figure('name', 'PEPATO application', 'NumberTitle', 'off', 'Units', 'normal', 'OuterPosition', [0 0 1 1]); clf;
@@ -85,7 +91,7 @@ classdef PepatoApp < handle
             
             logging_panel = uipanel(obj.figure_handle, 'Title', 'Log','Units', 'normal', 'Position', [.1 .0 .9 .1], 'FontSize', obj.FontSize+2);
             obj.logger = Logger().init_log(obj, logging_panel, 'PEPATO', 'descending', obj.FontSize);
-            obj.logger.message('INFO', sprintf('PEPATO init parameters: FontSize = %d, body_side = %s', FontSize, body_side));
+            obj.logger.message('INFO', sprintf('PEPATO init parameters: FontSize = %d, body_side = %s, config_filename = %s, database_filename = %s, muscle_list = %s', FontSize, body_side, config_filename, database_filename, strjoin(muscle_list_to_print, ', ')));
             obj.logger.message('INFO', sprintf('MATLAB version: %s', version));
             obj.control_panel = uipanel(obj.figure_handle, 'Title', 'Control Panel', 'BackgroundColor', 'white', 'Units', 'normal', 'Position', [.0 .0 .1 1.], 'FontSize', obj.FontSize+2);
             obj.visual_panel = uipanel(obj.figure_handle, 'Title', 'Visualization', 'BackgroundColor', 'white', 'Units', 'normal', 'Position', [.1 .1 .9 .9], 'FontSize', obj.FontSize+2);
@@ -129,10 +135,10 @@ classdef PepatoApp < handle
             obj.button_SaveProcessed.Callback = @obj.button_SaveProcessed_pushed; 
                        
             
-            obj.config = Config().init(obj, 'pepato_config.mat', {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {20, 400, 200, 8, 10, 'N=4'});
-            obj.data = PepatoData().init(obj);
+            obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {20, 400, 200, 8, 10, 'N=4'});
+            obj.data = PepatoData().init(obj, muscle_list);
             obj.visual = PepatoVisual().init(obj, obj.visual_panel);
-            obj.database = DataBase().init(obj, 'database.mat');
+            obj.database = DataBase().init(obj, database_filename);
             
         end
         
@@ -255,6 +261,8 @@ classdef PepatoApp < handle
                                     obj.PathDat = loaded.input.PathDat;
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
+                                    
+                                    obj.body_side = loaded.input.body_side;
 
                                     obj.visual.time_bounds = loaded.input.time_bounds;
                                     obj.visual.selected_muscles = loaded.input.selected_muscles;
@@ -263,6 +271,11 @@ classdef PepatoApp < handle
                                     
                                     obj.data.emg_enveloped = loaded.emg_enveloped;
                                     obj.data.emg_label = loaded.emg_label;
+                                    
+                                    for i = 1 : length(obj.data.emg_enveloped)
+                                        [obj.data.emg_enveloped{i}, obj.data.emg_label{i}, muscle_index, ~] = normalize_input(obj.data.emg_data_raw{i}, obj.data.emg_label{i}, obj.data.muscle_list, obj.body_side);
+                                    end                                    
+                                    obj.data.colors{i} = obj.all_colors(muscle_index, :);
 
                                 catch except
                                     obj.logger.message('ERROR', 'Loading is possible only from PEPATO generated file', except);
@@ -278,6 +291,10 @@ classdef PepatoApp < handle
                                     obj.PathDat = loaded.input.PathDat;
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
+                                    
+                                    obj.body_side = loaded.input.body_side;
+                                    
+                                    obj.data.muscle_list = loaded.input.muscle_list;
 
                                     obj.visual.time_bounds = loaded.input.time_bounds;
                                     obj.visual.selected_muscles = loaded.input.selected_muscles;
@@ -481,8 +498,8 @@ classdef PepatoApp < handle
                 obj.data.config.Properties.RowNames = {new_config_name};
             end
             
-            input = cell2struct({obj.FileDat, obj.PathDat, obj.proc_pipeline, obj.visual.time_bounds, obj.visual.selected_muscles, obj.visual.freq2filt, obj.visual.cycles2drop}, ...
-                {'FileDat', 'PathDat', 'proc_pipeline', 'time_bounds', 'selected_muscles', 'freq2filt', 'cycles2drop'}, 2);            
+            input = cell2struct({obj.FileDat, obj.PathDat, obj.proc_pipeline, obj.body_side, obj.data.muscle_list, obj.data.muscle_list, obj.visual.time_bounds, obj.visual.selected_muscles, obj.visual.freq2filt, obj.visual.cycles2drop}, ...
+                {'FileDat', 'PathDat', 'proc_pipeline', 'body_side', 'muscle_list', 'time_bounds', 'selected_muscles', 'freq2filt', 'cycles2drop'}, 2);            
             config = obj.data.config;
             results = obj.data.output_data;           
             
@@ -498,8 +515,8 @@ classdef PepatoApp < handle
         
         
         function button_SaveProcessed_pushed(obj, ~, ~)
-            input = cell2struct({obj.FileDat, obj.PathDat, obj.proc_pipeline, obj.visual.time_bounds, obj.visual.selected_muscles, obj.visual.freq2filt, obj.visual.cycles2drop}, ...
-                {'FileDat', 'PathDat', 'proc_pipeline', 'time_bounds', 'selected_muscles', 'freq2filt', 'cycles2drop'}, 2);
+            input = cell2struct({obj.FileDat, obj.PathDat, obj.proc_pipeline, obj.body_side, obj.data.muscle_list, obj.visual.time_bounds, obj.visual.selected_muscles, obj.visual.freq2filt, obj.visual.cycles2drop}, ...
+                {'FileDat', 'PathDat', 'proc_pipeline', 'body_side', 'muscle_list', 'time_bounds', 'selected_muscles', 'freq2filt', 'cycles2drop'}, 2);
             config = obj.data.config;
             emg_enveloped = obj.data.emg_enveloped;
             emg_label = obj.data.emg_label;

@@ -60,9 +60,10 @@ classdef DataBase
             catch except
                 obj.logger.message('WARNING', 'Modules database does not exist or is corrupted. Creating empty database.', except);
                 
-                all_labels = obj.parent_obj.data.all_labels;  
+                muscle_list = obj.parent_obj.data.muscle_list;  
                 obj.database= array2table(zeros(0, 216));
-                obj.database.Properties.VariableNames = [obj.index_columns, strcat(all_labels, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:200)))];
+                disp(muscle_list);
+                obj.database.Properties.VariableNames = [obj.index_columns, strcat(muscle_list, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:200)))];
                 
                 obj.save_database();
             end
@@ -170,7 +171,7 @@ classdef DataBase
             basic_patterns = obj.parent_obj.data.basic_patterns;
             muscle_weightings_ = obj.parent_obj.data.muscle_weightings;
             
-            all_labels = obj.parent_obj.data.all_labels;
+            muscle_list = obj.parent_obj.data.muscle_list;
             emg_labels = obj.parent_obj.data.emg_label;
             
             n_rows = size(cell2mat(basic_patterns)', 1);
@@ -186,14 +187,14 @@ classdef DataBase
             
             nmf_stop_criteria = repmat(obj.parent_obj.data.config.nnmf_stop_criterion, n_rows, 1);
             
-            MW = NaN(n_rows, length(all_labels));
+            MW = NaN(n_rows, length(muscle_list));
             col_shift = 0;
             for i = 1:length(muscle_weightings_)
                 mw = muscle_weightings_{i}';
                 n_rows_ = size(mw, 1);
                 for j = 1:length(emg_labels{i})
                     label = emg_labels{i}(j);
-                    idx = strcmp(all_labels, label);
+                    idx = strcmp(muscle_list, label);
                     MW(col_shift+1: col_shift+n_rows_, idx) = mw(:, j);
                 end
                 col_shift = col_shift + n_rows_;

@@ -29,5 +29,5 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 ## MATLAB version >= 2015b
 (full functionality, advanced GUI)
 ### Run
-`>>> PEPATO(8, 'left');` 
-- Set GUI font size and body side 
+`>>> PEPATO(8, 'left', 'default_config.mat', 'test_database.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});` 
+- Set GUI font size, body side, name of config file, name of database file and muscle list

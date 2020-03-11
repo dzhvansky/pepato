@@ -38,8 +38,7 @@ classdef PepatoData
         colors;
         muscles;
         
-        all_muscles;
-        all_labels;
+        muscle_list;
         all_colors;         
         
         output_params;
@@ -51,14 +50,17 @@ classdef PepatoData
 
     methods
         
-        function obj = init(obj, parent_obj)
+        function obj = init(obj, parent_obj, muscle_list)
             obj.parent_obj = parent_obj;
-            obj.logger = obj.parent_obj.logger;            
+            obj.logger = obj.parent_obj.logger;
             
-            obj.all_muscles = {'gluteus maximus', 'tensor fascia latae', 'biceps femoris', 'semitendinosus', ...
-                'vastus medialis', 'vastus lateralis', 'rectus femoris', 'tibialis anterior', ...
-                'peroneus longus', 'gastrocnemius medialis', 'gastrocnemius lateralis', 'soleus'};
-            obj.all_labels = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
+            if nargin < 3
+                obj.muscle_list = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
+            elseif isempty(muscle_list)
+                obj.muscle_list = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
+            else
+                obj.muscle_list = muscle_list;
+            end           
             
             obj.all_colors = [         
                          0    0.4470    0.7410;
@@ -100,7 +102,6 @@ classdef PepatoData
             obj.emg_framerate = cell(1, obj.n_files);
 %             obj.point_framerate = cell(1, obj.n_files);
             
-            obj.muscles = cell(1, obj.n_files);
             obj.colors = cell(1, obj.n_files);
             
             obj.emg_bounds = cell(1, obj.n_files);            
@@ -111,12 +112,11 @@ classdef PepatoData
 %                 [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.cycle_separator{i}, obj.cycle_timestamp{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.point_framerate{i}] = load_data(filename, body_side); 
                 [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
 
-%                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.all_labels);
-                [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.all_labels, body_side);
+%                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list);
+                [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
                 if ~ isempty(warn_labels)
-                    obj.logger.message('WARNING', sprintf('%s: labels [%s] are not in PEPATO muscle labels\nLabels must be among [%s]', FileDat{i}, warn_labels, strjoin(obj.all_labels, ', ')));
+                    obj.logger.message('WARNING', sprintf('%s: labels [%s] are not in PEPATO muscle labels\nLabels must be among [%s]', FileDat{i}, warn_labels, strjoin(obj.muscle_list, ', ')));
                 end
-                obj.muscles{i} = obj.all_muscles(muscle_index);
                 obj.colors{i} = obj.all_colors(muscle_index, :);
                 
 %                 if ~isempty(strfind(FileDat{i}, '_2_'))
@@ -153,7 +153,6 @@ classdef PepatoData
                 end
                 obj.emg_data_raw{i} = obj.emg_data_raw{i}(:, selected_muscles{i});                
                 obj.emg_label{i} = obj.emg_label{i}(selected_muscles{i});
-                obj.muscles{i} = obj.muscles{i}(selected_muscles{i});
                 obj.colors{i} = obj.colors{i}(selected_muscles{i}, :);
             end
             obj.parent_obj.data = obj;
@@ -207,7 +206,7 @@ classdef PepatoData
             for i = 1 : obj.n_files
                 obj.emg_max{i} = max(obj.emg_enveloped{i}, [], 1);
             end
-            obj.emg_max = emg_max_normalization(obj.emg_max, obj.emg_label, obj.all_labels, obj.n_files);
+            obj.emg_max = emg_max_normalization(obj.emg_max, obj.emg_label, obj.muscle_list, obj.n_files);
             
             obj.parent_obj.data = obj;
         end
