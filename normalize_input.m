@@ -5,7 +5,7 @@ if sum(~cellfun(@isempty, regexp(emg_label, ['_' body_side '$']))) > 0
     emg_label = cellfun(@(x) x(1:end-1-length(body_side)), emg_label, 'UniformOutput', false); 
 %     all_labels = strcat(all_labels, ['_' body_side]);
 
-warn_labels = [];
+warn_labels = {};
 
 idx = zeros(1, length(emg_label));
 for i = 1:length(emg_label)
@@ -26,9 +26,7 @@ emg_label = emg_label(idx);
 muscle_index = idx;
 
 if ~ isempty(warn_labels)
-    if ~ ischar(warn_labels)
-        warn_labels = strjoin(warn_labels, ', ');
-    end
+    warn_labels = strjoin(warn_labels, ', ');
 end
 
 end

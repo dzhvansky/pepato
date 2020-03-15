@@ -41,11 +41,6 @@ classdef PepatoBasic
             files = struct2cell(files);
             obj.FileDat = files(1, :);
             
-%             [obj.FileDat, obj.PathDat] = uigetfile('/cd/*.csv', 'Open EMG data', 'Multiselect', 'on');
-%             if ischar(obj.FileDat)
-%                 obj.FileDat = {obj.FileDat};
-%             end
-            
             obj.data = obj.data.load_data(obj.FileDat, obj.input_folder, obj.body_side);
         end
         
@@ -62,8 +57,17 @@ classdef PepatoBasic
         end
         
         
-        function obj = get_output(obj)
+        function obj = write_to_file(obj)
+            output_filename = 'subject_';
             
+            names = obj.data.filenames;
+            for i = 1 : length(names)
+                splitted_ = strsplit(names{i}, '_');
+                if i == 1 output_filename = [output_filename, [splitted_{2} '_runs']]; end
+                output_filename = [output_filename, ['_' splitted_{4}]];
+            end
+            
+            obj.data.write_output_yaml(fullfile(obj.output_folder, [output_filename '_pepato_output.yml']));
         end
         
     end

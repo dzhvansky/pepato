@@ -60,7 +60,7 @@ classdef PepatoApp < handle
     methods
         
         function obj = PepatoApp(FontSize, body_side, config_filename, database_filename, muscle_list)
-            if nargin < 6
+            if nargin < 5 || isempty(muscle_list)
                 muscle_list_to_print = {''};
             else
                 muscle_list_to_print = muscle_list;

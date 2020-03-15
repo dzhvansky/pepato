@@ -283,6 +283,32 @@ classdef PepatoData
         end
         
         
+        function obj = write_output_yaml(obj, file_name)
+            data_types = cell2struct({'value', 'value', 'vector', 'vector', 'vector', 'vector', 'vector', 'value', 'vector'}, obj.output_params, 2);
+            
+            fid = fopen(file_name, 'w');
+            
+            for i = 1 : obj.n_files
+                fprintf(fid, '%s:\n', obj.filenames{i});
+                for j = 1 : length(obj.output_params)
+                    param_name = obj.output_params{j};
+                    param_type = data_types.(param_name);
+                    param_value = obj.output_data(i).data.(param_name);
+                    
+                    fprintf(fid, '\tpi_name: %s\n', param_name);
+                    fprintf(fid, '\t\ttype: %s\n', param_type);
+                    if strcmp(param_type, 'value')
+                        fprintf(fid, '\t\tvalue: %s\n', num2str(param_value));
+                    elseif strcmp(param_type, 'vector')
+                        fprintf(fid, '\t\tvalue: [%s]\n', strjoin(arrayfun(@(x) num2str(x), param_value, 'UniformOutput', false), ', '));
+                    end
+                end
+            end
+            
+            fclose(fid);
+        end
+        
+        
         function obj = reset(obj)
             
             obj.config = [];
