@@ -440,8 +440,7 @@ classdef PepatoApp < handle
 
             obj.data.envelope_max_normalization();
 
-            obj.button_SynergyAnalysis.Enable = 'on'; 
-            obj.button_SpinalMapsAnalysis.Enable = 'on';
+            obj.button_Analysis.Enable = 'on';
             obj.button_SaveProcessed.Enable = 'on';
         end
         
@@ -449,7 +448,7 @@ classdef PepatoApp < handle
         function button_Analysis_pushed(obj, ~, ~)
             switch obj.menu_item_mode.Checked
                 case 'off'
-                    obj.button_SpinalMapsAnalysis.Enable = 'off';
+                    obj.button_Analysis.Enable = 'off';
             end
             
             switch obj.visual.reproduce
@@ -466,6 +465,9 @@ classdef PepatoApp < handle
             obj.logger.message('INFO', 'Spinal maps analysis done.');
             
 %             TODO: compare with reference
+
+            obj.button_SaveResults.Enable = 'on';
+            obj.button_SaveProcessed.Enable = 'on';
         end
         
         
@@ -481,7 +483,7 @@ classdef PepatoApp < handle
                 obj.data.config.Properties.RowNames = {new_config_name};
             end
             
-            input = cell2struct({obj.FileDat, obj.PathDat, obj.proc_pipeline, obj.body_side, obj.data.muscle_list, obj.data.muscle_list, obj.visual.time_bounds, obj.visual.selected_muscles, obj.visual.freq2filt, obj.visual.cycles2drop}, ...
+            input = cell2struct({obj.FileDat, obj.PathDat, obj.proc_pipeline, obj.body_side, obj.data.muscle_list, obj.visual.time_bounds, obj.visual.selected_muscles, obj.visual.freq2filt, obj.visual.cycles2drop}, ...
                 {'FileDat', 'PathDat', 'proc_pipeline', 'body_side', 'muscle_list', 'time_bounds', 'selected_muscles', 'freq2filt', 'cycles2drop'}, 2);            
             config = obj.data.config;
             results = obj.data.output_data;           
