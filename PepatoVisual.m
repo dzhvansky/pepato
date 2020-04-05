@@ -63,7 +63,6 @@ classdef PepatoVisual
             
             obj.report_tab_handle = uitab(obj.first_level_tab_group, 'Title', 'Report');
             obj.report_table = uitable(obj.report_tab_handle, 'RowName', obj.parent_obj.data.output_params, 'ColumnName', filenames, 'ColumnWidth', {400}, 'Units', 'Normalized', 'Position', [.0 .0, 1., 1.], 'FontS', obj.parent_obj.FontSize+2);
-%             strcat(sprintf('<html><font size=%d>', obj.parent_obj.FontSize-2), 
             obj.parent_obj.visual = obj;
         end
         
@@ -74,18 +73,10 @@ classdef PepatoVisual
             n_handle = 1;
             
             for i = 1 : obj.n_files
-
                 obj.first_level_tab_group.SelectedTab = obj.first_level_tab_handle(i);
                 obj.second_level_tab_group{i}.SelectedTab = obj.second_level_tab_handle(n_handle, i);
                 
-%                 fig_emg(obj.second_level_tab_handle(n_handle, i), data.colors{i}, data.emg_data_raw{i}, data.emg_timestamp{i}, data.emg_framerate{i}, data.emg_label{i});
                 fig_emg(obj.second_level_tab_handle(n_handle, i), data.colors{i}, data.emg_data_raw{i}, data.emg_timestamp{i}, data.emg_bounds{i}, data.emg_framerate{i}, data.emg_label{i});
-                
-%                 cutoff = 6 /(point_framerate{i}/2);%low pass
-%                 [bl, al] = butter(2, cutoff); %Butterworth 2-nd order
-%                 cycle_separator{i} = filtfilt(bl, al, cycle_separator{i}); %low-pass 4-th order Butterworth filter                
-                
-%                 fig_cycles(obj.second_level_tab_handle(n_handle, i), data.cycle_separator{i}, data.cycle_timestamp{i}, data.emg_timestamp{i}, data.emg_framerate{i}, data.point_framerate{i}, size(data.emg_data_raw{i}, 2), data.emg_bounds{i});
             end
             
             obj.parent_obj.visual = obj;
@@ -118,7 +109,6 @@ classdef PepatoVisual
                                 for j = 1 : n_segments
                                     [obj.time_bounds{i}(j, 1:2), ~] = ginput(2);
                                     fig_segment(obj.second_level_tab_handle(n_handle, i), size(data.emg_data_raw{i}, 2), data.emg_timestamp{i}, data.emg_framerate{i}, obj.time_bounds{i}(j, 1:2));
-%                                     fig_segment(obj.second_level_tab_handle(n_handle, i), size(data.emg_data_raw{i}, 2), data.emg_timestamp{i}, data.cycle_timestamp{i}, data.emg_framerate{i}, data.point_framerate{i}, obj.time_bounds{i}(j, 1:2));
                                 end
                             catch ex
                                 n_segments = [];
@@ -135,7 +125,6 @@ classdef PepatoVisual
                     case 'Yes'
                         for j = 1 : size(obj.time_bounds{i}, 1)
                             fig_segment(obj.second_level_tab_handle(n_handle, i), size(data.emg_data_raw{i}, 2), data.emg_timestamp{i}, data.emg_framerate{i}, obj.time_bounds{i}(j, 1:2));
-%                             fig_segment(obj.second_level_tab_handle(n_handle, i), size(data.emg_data_raw{i}, 2), data.emg_timestamp{i}, data.cycle_timestamp{i}, data.emg_framerate{i}, data.point_framerate{i}, obj.time_bounds{i}(j, 1:2));
                         end
                 end
                 
@@ -250,28 +239,14 @@ classdef PepatoVisual
             n_handle = 7;
             colormap(jetnew(32,-1)); % recalibrate colormap
         
-            for i = 1 : obj.n_files   
-
+            for i = 1 : obj.n_files
                 delete(obj.second_level_tab_handle(n_handle, i));
                 obj.second_level_tab_handle(n_handle, i) = uitab(obj.second_level_tab_group{i}, 'Title', obj.second_level_tab_names{n_handle});
 
                 obj.first_level_tab_group.SelectedTab = obj.first_level_tab_handle(i);
                 obj.second_level_tab_group{i}.SelectedTab = obj.second_level_tab_handle(n_handle, i);
 
-                FigSpinalmaps(obj.second_level_tab_handle(n_handle, i), data.motorpools_activation{i}, data.motorpools_activation_avg{i});             
-% 
-%                 seltab = obj.second_level_tab_group{i}.SelectedTab;
-% 
-%                 annotation(seltab, 'textbox', [.5 .7 .4 .25], 'String', ...
-%                     sprintf('1. Timing of maximum activation:\n - sacral (S1+S2) motor pools = %0.1f percent \n - upper lumbar (L3+L4) motor pools = %0.1f percent \n\n\n', data.output_data(i).data.MAP_sacral_max, data.output_data(i).data.MAP_lumbar_max),...
-%                     'Color', 'k', 'FontSize', 10, 'EdgeColor','None', 'HorizontalAlignment', 'left');
-%                 annotation(seltab, 'textbox', [.5 .4 .4 .25], 'String', ...
-%                     sprintf('2. FWHM of activation:\n - sacral (S1+S2) motor pools = %0.1f percent of cycle \n - upper lumbar (L3+L4) motor pools = %0.1f percent of cycle \n\n\n', data.output_data(i).data.MAP_sacral_fwhm, data.output_data(i).data.MAP_lumbar_fwhm),...
-%                     'Color', 'k', 'FontSize', 10, 'EdgeColor','None', 'HorizontalAlignment', 'left');
-%                 annotation(seltab, 'textbox', [.5 .1 .4 .25], 'String', ...
-%                     sprintf('3. Co-activation index of sacral and upper lumbar motor pools = %0.2f \n\n\n', data.output_data(i).data.MAP_ci),...
-%                     'Color', 'k', 'FontSize', 10, 'EdgeColor','None', 'HorizontalAlignment', 'left');
-
+                FigSpinalmaps(obj.second_level_tab_handle(n_handle, i), data.motorpools_activation{i}, data.motorpools_activation_avg{i});
             end
             
             obj.refresh_report(data);
@@ -302,7 +277,6 @@ classdef PepatoVisual
                 temp_ = struct2cell(temp_{:});
                 to_report(:, i) = temp_(:, 1); 
                 temp_ = to_report(1, i);
-%                 if ~ isempty(temp_{:}) to_report(1, i) = {strjoin(temp_{:}, ', ')}; end
                 
                 n_round = 1;
                 for j = 1:n_params

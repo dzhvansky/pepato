@@ -10,7 +10,8 @@ classdef DataBase
         
         index_columns;
         
-        database;
+        module_database;
+        
         subjects;
         conditions;
         sides;
@@ -56,13 +57,13 @@ classdef DataBase
             
             try
                  loaded = load(obj.database_file);
-                 obj.database = loaded.module_database;
+                 obj.module_database = loaded.module_database;
             catch except
                 obj.logger.message('WARNING', 'Modules database does not exist or is corrupted. Creating empty database.', except);
                 
                 muscle_list = obj.parent_obj.data.muscle_list;
-                obj.database= array2table(zeros(0, 216));
-                obj.database.Properties.VariableNames = [obj.index_columns, strcat(muscle_list, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:200)))];
+                obj.module_database = array2table(zeros(0, 216));
+                obj.module_database.Properties.VariableNames = [obj.index_columns, strcat(muscle_list, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:200)))];
                 
                 obj.save_database();
             end
@@ -72,7 +73,7 @@ classdef DataBase
         
         
         function obj = save_database(obj)        
-            module_database = obj.database;
+            module_database = obj.module_database;
             save(obj.database_file, 'module_database');
         end
         
@@ -84,9 +85,9 @@ classdef DataBase
             
             obj.sides = {'left', 'right'};
             
-            if ~ isempty(obj.database)
-                obj.subjects = obj.find_unique_cells(obj.database{:, {'subject'}});
-                obj.conditions = obj.find_unique_cells(obj.database{:, {'condition'}});
+            if ~ isempty(obj.module_database)
+                obj.subjects = obj.find_unique_cells(obj.module_database{:, {'subject'}});
+                obj.conditions = obj.find_unique_cells(obj.module_database{:, {'condition'}});
             else
                 obj.subjects = {};
                 obj.conditions = {};
@@ -202,9 +203,9 @@ classdef DataBase
             BP = cell2mat(basic_patterns)';
             
             rows_to_add = [subject, condition, side, nmf_stop_criteria, num2cell(MW), num2cell(BP)];
-            rows_to_add = cell2table(rows_to_add, 'VariableNames', obj.database.Properties.VariableNames);
+            rows_to_add = cell2table(rows_to_add, 'VariableNames', obj.module_database.Properties.VariableNames);
             
-            index2drop = obj.find_index2drop(obj.database, rows_to_add, obj.index_columns);
+            index2drop = obj.find_index2drop(obj.module_database, rows_to_add, obj.index_columns);
             
             if sum(index2drop) ~= 0 
                 if sum(index2drop) < size(rows_to_add, 1)
@@ -231,7 +232,7 @@ classdef DataBase
                 to_add = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_add)), ', '); 
             end
             
-            obj.database = [obj.database; rows_to_add];
+            obj.module_database = [obj.module_database; rows_to_add];
             obj.save_database();
             
             if ~isempty(rows_to_add)

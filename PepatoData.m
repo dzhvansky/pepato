@@ -15,10 +15,6 @@ classdef PepatoData
         emg_framerate;
         emg_label;
         
-%         cycle_separator;
-%         cycle_timestamp;
-%         point_framerate;
-        
         freq2filt;
         
         emg_bounds;
@@ -38,7 +34,7 @@ classdef PepatoData
         colors;
         muscles;
         
-        muscle_list;
+        muscle_list = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
         all_colors;         
         
         output_params;
@@ -54,11 +50,7 @@ classdef PepatoData
             obj.parent_obj = parent_obj;
             obj.logger = obj.parent_obj.logger;
             
-            if nargin < 3
-                obj.muscle_list = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
-            elseif isempty(muscle_list)
-                obj.muscle_list = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
-            else
+            if nargin > 2 || ~isempty(muscle_list)
                 obj.muscle_list = muscle_list;
             end           
             
@@ -96,38 +88,21 @@ classdef PepatoData
                         
             obj.emg_data_raw = cell(1, obj.n_files);
             obj.emg_timestamp = cell(1, obj.n_files);
-%             obj.cycle_separator = cell(1, obj.n_files);
-%             obj.cycle_timestamp = cell(1, obj.n_files);
             obj.emg_label = cell(1, obj.n_files);
             obj.emg_framerate = cell(1, obj.n_files);
-%             obj.point_framerate = cell(1, obj.n_files);
             
             obj.colors = cell(1, obj.n_files);
             
             obj.emg_bounds = cell(1, obj.n_files);            
             
             for i = 1 : obj.n_files
-%                 filename = [PathDat FileDat{i}];
-                
-%                 [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.cycle_separator{i}, obj.cycle_timestamp{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.point_framerate{i}] = load_data(filename, body_side); 
                 [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
-
-%                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list);
                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
+                
                 if ~ isempty(warn_labels)
                     obj.logger.message('WARNING', sprintf('%s: labels [%s] are not in PEPATO muscle labels\nLabels must be among [%s]', FileDat{i}, warn_labels, strjoin(obj.muscle_list, ', ')));
                 end
                 obj.colors{i} = obj.all_colors(muscle_index, :);
-                
-%                 if ~isempty(strfind(FileDat{i}, '_2_'))
-%                     gait_freq = 0.75;
-%                 elseif ~isempty(strfind(FileDat{i}, '_4_'))
-%                     gait_freq = 1.5;
-%                 elseif ~isempty(strfind(FileDat{i}, '_6_'))
-%                     gait_freq = 2.25;                    
-%                 end
-%                 
-%                 obj.emg_bounds{i} = cycle_detection(obj.cycle_separator{i}, obj.emg_framerate{i}, obj.point_framerate{i}, gait_freq);                
             end
             obj.parent_obj.data = obj;
         end
@@ -136,10 +111,8 @@ classdef PepatoData
         function obj = segment_selection(obj, time_bounds)        
             for i = 1 : obj.n_files
                 if ~ isempty(obj.emg_data_cleaned)
-%                     [obj.emg_data_cleaned{i}, ~, ~] = segment_selection(obj.emg_data_cleaned{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, obj.point_framerate{i}, time_bounds{i});
                     [obj.emg_data_cleaned{i}, ~, ~] = segment_selection(obj.emg_data_cleaned{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, time_bounds{i});
                 end
-%                 [obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}] = segment_selection(obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, obj.point_framerate{i}, time_bounds{i});
                 [obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}] = segment_selection(obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, time_bounds{i});
             end
             obj.parent_obj.data = obj;
@@ -233,9 +206,7 @@ classdef PepatoData
                 [obj.basic_patterns{i}, obj.basic_patterns_sd{i}, ~, ~] = emg_cycle_averaging(temporal_components', N_points, 2);
 
                 [fwhm, coa] = pattern_analisys(obj.basic_patterns{i}, N_points);
-
-%                 obj.output_data(i).data.emg_label = obj.emg_label{i};
-%                 obj.output_data(i).data.SYN_basic_patterns = obj.basic_patterns{i};
+                
                 obj.output_data(i).data.('muscle_synergy_number') = n_synergies;
                 obj.output_data(i).data.('emg_reco_quality') = obj.nmf_r2{i}(n_synergies, 1);            
                 obj.output_data(i).data.('pattern_fwhm') = mean(fwhm, 1);
@@ -254,8 +225,6 @@ classdef PepatoData
             obj.motorpools_activation_avg = cell(1, obj.n_files);
             
             for i = 1 : obj.n_files
-                %  emg_enveloped_normalized = emg_enveloped{i} ./ repelem(emg_max{i}, size(emg_enveloped{i}, 1), 1);
-
                 [emg_mean, ~, ~, ~] = emg_cycle_averaging(obj.emg_enveloped{i}, N_points, 2);
 
                 obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', obj.emg_label{i});       
@@ -320,10 +289,6 @@ classdef PepatoData
             obj.emg_timestamp = [];
             obj.emg_framerate = [];
             obj.emg_label = [];
-
-%             obj.cycle_separator = [];
-%             obj.cycle_timestamp = [];
-%             obj.point_framerate = [];
 
             obj.freq2filt = [];
 

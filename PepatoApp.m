@@ -2,7 +2,7 @@ classdef PepatoApp < handle
     
     properties
         
-        file_extension = 'csv';  % 'mat'
+        file_extension = 'csv';
         body_side; 
         
         data;
@@ -40,9 +40,10 @@ classdef PepatoApp < handle
         button_SpectraFiltering;
         button_ArtifactFiltering;
         
-        button_SynergyAnalysis;
-        button_SpinalMapsAnalysis;        
-        button_ReferenceCompare;
+        button_Analysis;
+%         button_SynergyAnalysis;
+%         button_SpinalMapsAnalysis;        
+%         button_ReferenceCompare;
         
         button_SaveResults;
         button_SaveProcessed;       
@@ -121,12 +122,14 @@ classdef PepatoApp < handle
             obj.button_ArtifactFiltering.Callback = @obj.button_ArtifactFiltering_pushed;
 
             analysis_panel = uipanel(obj.control_panel, 'Title', 'Analysis','Units', 'normal', 'Position', [.05 .509 .9 .14], 'FontSize', obj.FontSize);
-            obj.button_SynergyAnalysis = uicontrol(analysis_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Muscle Synergies','FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .68972 .9 .27586], 'Tag', 'button_syn_analysis');
-            obj.button_SynergyAnalysis.Callback = @obj.button_SynergyAnalysis_pushed;
-            obj.button_SpinalMapsAnalysis = uicontrol(analysis_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Spinal Maps','FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .37936 .9 .27586], 'Tag', 'button_spinal_maps');
-            obj.button_SpinalMapsAnalysis.Callback = @obj.button_SpinalMapsAnalysis_pushed;
-            obj.button_ReferenceCompare=uicontrol(analysis_panel, 'Style', 'pushbutton', 'Enable', 'off','String', 'Compare with reference', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .069 .9 .27586], 'Tag', 'button_compare');
-            obj.button_ReferenceCompare.Callback=@obj.button_ReferenceCompare_pushed;
+%             obj.button_SynergyAnalysis = uicontrol(analysis_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Muscle Synergies','FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .68972 .9 .27586], 'Tag', 'button_syn_analysis');
+%             obj.button_SynergyAnalysis.Callback = @obj.button_SynergyAnalysis_pushed;
+%             obj.button_SpinalMapsAnalysis = uicontrol(analysis_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Spinal Maps','FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .37936 .9 .27586], 'Tag', 'button_spinal_maps');
+%             obj.button_SpinalMapsAnalysis.Callback = @obj.button_SpinalMapsAnalysis_pushed;
+%             obj.button_ReferenceCompare=uicontrol(analysis_panel, 'Style', 'pushbutton', 'Enable', 'off','String', 'Compare with reference', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .069 .9 .27586], 'Tag', 'button_compare');
+%             obj.button_ReferenceCompare.Callback=@obj.button_ReferenceCompare_pushed;
+            obj.button_Analysis=uicontrol(analysis_panel, 'Style', 'pushbutton', 'Enable', 'off','String', 'Analysis', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .069 .9 .8966], 'Tag', 'button_analysis');
+            obj.button_Analysis.Callback=@obj.button_Analysis_pushed;
 
             save_panel = uipanel(obj.control_panel, 'Title', 'Saving','Units', 'normal', 'Position', [.05 .399 .9 .1], 'FontSize', obj.FontSize);
             obj.button_SaveResults = uicontrol(save_panel, 'Style', 'pushbutton', 'Enable', 'off', 'String', 'Save results', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .55 .9 .4], 'Tag', 'button_save');
@@ -181,7 +184,6 @@ classdef PepatoApp < handle
                 waitfor(warn_handler);
             end
             config_to_compare = obj.config.current_config;
-%             confirm_edit_config = questdlg(sprintf('Delete configuration?\nDelete configuration?'), 'Edit config', 'Yes', 'No', obj.yes_no_question_opts);
             config_gui = PepatoConfigGUI(obj, obj.FontSize);
             drawnow;
             waitfor(config_gui.figure_handle);
@@ -229,7 +231,7 @@ classdef PepatoApp < handle
                     obj.logger.message('INFO', 'All variables reset');
 
                     obj.button_CropData.Enable = 'off'; obj.button_MuscleSelection.Enable = 'off'; obj.button_SpectraFiltering.Enable = 'off'; obj.button_ArtifactFiltering.Enable = 'off';
-                    obj.button_SynergyAnalysis.Enable = 'off'; obj.button_SpinalMapsAnalysis.Enable = 'off'; obj.button_ReferenceCompare.Enable = 'off'; 
+                    obj.button_Analysis.Enable = 'off';
                     obj.button_SaveResults.Enable = 'off'; obj.button_SaveProcessed.Enable = 'off';
                     
                     switch obj.load_type
@@ -253,16 +255,24 @@ classdef PepatoApp < handle
                                 
                             case 'preproc'
                                 try
-                                    loaded = load([obj.PathDat obj.FileDat], 'input', 'emg_enveloped', 'emg_label');
+                                    preproc_filename = [obj.PathDat obj.FileDat];
+                                    
+                                    loaded = load(preproc_filename, 'input', 'emg_enveloped', 'emg_label');
                                     obj.logger.message('INFO', ['Load PEPATO preprocessed data: config and parametrs downloaded from the file ' obj.PathDat obj.FileDat]);
-                                    obj.config.load_config_from_file([obj.PathDat obj.FileDat]);
+                                    obj.config.load_config_from_file(preproc_filename);
 
                                     obj.FileDat = loaded.input.FileDat;
                                     obj.PathDat = loaded.input.PathDat;
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
                                     
-                                    obj.body_side = loaded.input.body_side;
+                                    % TODO: ??????? try catch
+                                    try
+                                        obj.body_side = loaded.input.body_side;
+                                    catch
+                                        filename_splitted = strsplit(preproc_filename, '_');
+                                        obj.body_side = filename_splitted{end-1};
+                                    end
 
                                     obj.visual.time_bounds = loaded.input.time_bounds;
                                     obj.visual.selected_muscles = loaded.input.selected_muscles;
@@ -273,9 +283,9 @@ classdef PepatoApp < handle
                                     obj.data.emg_label = loaded.emg_label;
                                     
                                     for i = 1 : length(obj.data.emg_enveloped)
-                                        [obj.data.emg_enveloped{i}, obj.data.emg_label{i}, muscle_index, ~] = normalize_input(obj.data.emg_data_raw{i}, obj.data.emg_label{i}, obj.data.muscle_list, obj.body_side);
-                                    end                                    
-                                    obj.data.colors{i} = obj.all_colors(muscle_index, :);
+                                        [obj.data.emg_enveloped{i}, obj.data.emg_label{i}, muscle_index, ~] = normalize_input(obj.data.emg_enveloped{i}, obj.data.emg_label{i}, obj.data.muscle_list, obj.body_side);
+                                        obj.data.colors{i} = obj.data.all_colors(muscle_index, :);
+                                    end
 
                                 catch except
                                     obj.logger.message('ERROR', 'Loading is possible only from PEPATO generated file', except);
@@ -334,12 +344,8 @@ classdef PepatoApp < handle
                                                         obj.button_SpectraFiltering_pushed;
                                                     case 'artifact filtering'
                                                         obj.button_ArtifactFiltering_pushed;
-                                                    case 'synergy analysis'
-                                                        obj.button_SynergyAnalysis_pushed;
-                                                    case 'spinal maps'
-                                                        obj.button_SpinalMapsAnalysis_pushed;
-                                                    case 'compare with reference'
-                                                        obj.button_ReferenceCompare_pushed;
+                                                    case 'analysis'
+                                                        obj.button_Analysis_pushed;
                                                 end
                                             end                                  
                                     end
@@ -354,8 +360,7 @@ classdef PepatoApp < handle
                                 obj.visual.draw_cleaned_envelope(obj.data);
                                 obj.data.envelope_max_normalization();
 
-                                obj.button_SynergyAnalysis.Enable = 'on';
-                                obj.button_SpinalMapsAnalysis.Enable = 'on';
+                                obj.button_Analysis.Enable = 'on';
                         end
                         
                         
@@ -441,24 +446,7 @@ classdef PepatoApp < handle
         end
         
         
-        function button_SynergyAnalysis_pushed(obj, ~, ~)
-            switch obj.menu_item_mode.Checked
-                case 'off'
-                    obj.button_SynergyAnalysis.Enable = 'off';
-            end
-            
-            switch obj.visual.reproduce
-                case 'No'
-                    obj.proc_pipeline = [obj.proc_pipeline, 'synergy analysis'];
-            end
-            
-            obj.data.muscle_synergies();        
-            obj.visual.draw_muscle_synergies(obj.data);
-            obj.logger.message('INFO', sprintf('Synergy Analysis done. NMF stop criteria: "%s"', obj.data.config.nnmf_stop_criterion{:}));
-        end
-        
-        
-        function button_SpinalMapsAnalysis_pushed(obj, ~, ~)
+        function button_Analysis_pushed(obj, ~, ~)
             switch obj.menu_item_mode.Checked
                 case 'off'
                     obj.button_SpinalMapsAnalysis.Enable = 'off';
@@ -466,23 +454,18 @@ classdef PepatoApp < handle
             
             switch obj.visual.reproduce
                 case 'No'
-                    obj.proc_pipeline = [obj.proc_pipeline, 'spinal maps'];
+                    obj.proc_pipeline = [obj.proc_pipeline, 'analysis'];
             end
+            
+            obj.data.muscle_synergies();        
+            obj.visual.draw_muscle_synergies(obj.data);
+            obj.logger.message('INFO', sprintf('Synergy analysis done. NMF stop criteria: "%s"', obj.data.config.nnmf_stop_criterion{:}));
             
             obj.data.spinal_maps();
             obj.visual.draw_spinal_maps(obj.data);
+            obj.logger.message('INFO', 'Spinal maps analysis done.');
             
-            obj.button_ReferenceCompare.Enable = 'on';
-            obj.button_SaveResults.Enable = 'on';            
-        end
-        
-        
-        function button_ReferenceCompare_pushed(obj, ~, ~)            
-%             obj.button_ReferenceCompare.Enable = 'off';
-            switch obj.visual.reproduce
-                case 'No'
-                    obj.proc_pipeline = [obj.proc_pipeline, 'compare with reference'];
-            end
+%             TODO: compare with reference
         end
         
         

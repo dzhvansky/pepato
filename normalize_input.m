@@ -1,9 +1,8 @@
-% function [emg_data, emg_label, muscle_index, warn_labels] = normalize_input(emg_data, emg_label, all_labels)
 function [emg_data, emg_label, muscle_index, warn_labels] = normalize_input(emg_data, emg_label, all_labels, body_side)
 
 if sum(~cellfun(@isempty, regexp(emg_label, ['_' body_side '$']))) > 0
     emg_label = cellfun(@(x) x(1:end-1-length(body_side)), emg_label, 'UniformOutput', false); 
-%     all_labels = strcat(all_labels, ['_' body_side]);
+end
 
 warn_labels = {};
 
