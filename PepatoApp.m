@@ -160,7 +160,7 @@ classdef PepatoApp < handle
                 syn_criteria_panel = uipanel(obj.research_panel, 'Title', 'Synergies criteria','Units', 'normal', 'Position', [.05 .2 .9 .8], 'FontSize', obj.FontSize);
                 obj.criteria_list = uicontrol(syn_criteria_panel, 'Style', 'ListBox', 'String', {'BLF', 'N=2', 'N=3', 'N=4', 'N=5', 'N=6', 'R=0.90', 'R=0.95'}, 'Units', 'normal', 'Position', [.0 .0 1. 1.]);
                 obj.criteria_list.Callback = @obj.config_list_selection;
-                obj.button_SaveModules = uicontrol(obj.research_panel, 'Style', 'pushbutton', 'String', 'Save synergies', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .15]);
+                obj.button_SaveModules = uicontrol(obj.research_panel, 'Style', 'pushbutton', 'String', 'Update database', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .15]);
                 obj.button_SaveModules.Callback = @obj.button_SaveModules_pushed;
             end            
         end
@@ -246,11 +246,12 @@ classdef PepatoApp < handle
 
                         switch obj.load_type
                             case 'raw'
-                                if ~ strcmp(obj.FileDat, '')
-                                    if ischar(obj.FileDat)
-                                        obj.FileDat = {obj.FileDat};
-                                    end
+                                [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.PathDat);
+                                if checked_
                                     obj.logger.message('INFO', ['Files ' sprintf('%s, ', obj.FileDat{:}) 'uploaded from the folder ' obj.PathDat]);
+                                else
+                                    obj.FileDat = '';
+                                    obj.logger.message('ERROR', 'Reproduce is possible only from PEPATO generated results file');
                                 end
                                 
                             case 'preproc'
@@ -266,7 +267,9 @@ classdef PepatoApp < handle
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
                                     
-                                    % TODO: ??????? try catch
+                                    % TODO: ??????? try catch -- delete
+                                    % after using preproc files for
+                                    % database
                                     try
                                         obj.body_side = loaded.input.body_side;
                                     catch

@@ -8,9 +8,11 @@ classdef DataBase
         
         n_files;
         
-        index_columns;
+        module_idx_columns;
+        maps_idx_columns;
         
         module_database;
+        maps_database;
         
         subjects;
         conditions;
@@ -53,17 +55,26 @@ classdef DataBase
             obj.logger = obj.parent_obj.logger;
             
             obj.database_file = database_file;
-            obj.index_columns = {'subject', 'condition', 'side', 'nmf_stop_criteria'};
+            obj.module_idx_columns = {'subject', 'condition', 'side', 'nmf_stop_criteria'};
+            obj.maps_idx_columns = {'subject', 'condition', 'side'};
             
             try
                  loaded = load(obj.database_file);
                  obj.module_database = loaded.module_database;
+                 obj.maps_database = loaded.maps_database;
             catch except
                 obj.logger.message('WARNING', 'Modules database does not exist or is corrupted. Creating empty database.', except);
                 
                 muscle_list = obj.parent_obj.data.muscle_list;
-                obj.module_database = array2table(zeros(0, 216));
-                obj.module_database.Properties.VariableNames = [obj.index_columns, strcat(muscle_list, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:200)))];
+                n_points = obj.parent_obj.config.current_config.n_points;
+                
+                obj.module_database = array2table(zeros(0, length(obj.module_idx_columns)+4+length(muscle_list)+n_points));
+                obj.module_database.Properties.VariableNames = [obj.module_idx_columns, 'n_synergies', 'reco_quality', 'pattern_fwhm', 'pattern_coa', ...
+                    strcat(muscle_list, {'_weight'}), strcat({'pattern_'}, strsplit(num2str(1:n_points)))];
+                
+                obj.maps_database = array2table(zeros(0, length(obj.maps_idx_columns)+5+2*n_points));
+                obj.maps_database.Properties.VariableNames = [obj.maps_idx_columns, 'sacral_max', 'lumbar_max', 'sacral_fwhm', 'lumbar_fwhm', 'coact_index', ...
+                    strcat({'sacral_pat_'}, strsplit(num2str(1:n_points))), strcat({'lumbar_pat_'}, strsplit(num2str(1:n_points)))];
                 
                 obj.save_database();
             end
@@ -74,7 +85,8 @@ classdef DataBase
         
         function obj = save_database(obj)        
             module_database = obj.module_database;
-            save(obj.database_file, 'module_database');
+            maps_database = obj.maps_database;
+            save(obj.database_file, 'module_database', 'maps_database');
         end
         
         
@@ -82,8 +94,6 @@ classdef DataBase
             obj = obj.parent_obj.database;
             
             obj.n_files = obj.parent_obj.data.n_files;
-            
-            obj.sides = {'left', 'right'};
             
             if ~ isempty(obj.module_database)
                 obj.subjects = obj.find_unique_cells(obj.module_database{:, {'subject'}});
@@ -98,30 +108,36 @@ classdef DataBase
         
         
         function obj = input_names(obj)
-            obj = obj.parent_obj.database.get_database_info();            
+            obj = obj.parent_obj.database.get_database_info();
             
-            obj.figure_handle = figure('name', 'Save modules', 'NumberTitle','off', 'Units', 'normal', 'OuterPosition', [.2 .2 .6 .6], 'WindowStyle', 'modal'); clf;
+            filenames = obj.parent_obj.data.filenames;
+            N = length(filenames);
+            conditions_ = cell(1, N);
+            for i = 1:N
+                f = filenames(i);
+                splitted = strsplit(f{:}, '_');
+                conditions_{1, i} = strjoin(splitted(5:end), '_');
+            end
+            subject_ = splitted{2};
+            
+            obj.figure_handle = figure('name', 'Save analysis results', 'NumberTitle','off', 'Units', 'normal', 'OuterPosition', [.2 .2 .6 .6], 'WindowStyle', 'modal'); clf;
             set(obj.figure_handle, 'MenuBar', 'none'); set(obj.figure_handle, 'ToolBar', 'none');
             
             annotation(obj.figure_handle, 'textbox', 'String', 'Select subject name:', 'Units', 'normal', 'Position', [.05, .87, .55, .08], 'VerticalAlignment', 'bottom');
-            obj.subject_name = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', '', 'Units', 'normal', 'Position', [.05, .77, .55, .08]);
+            obj.subject_name = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', subject_, 'Units', 'normal', 'Position', [.05, .77, .55, .08]);
             obj.subject_list = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.subjects, 'Units', 'normal', 'Position', [.05, .65, .55, .1]);
             obj.subject_list.Callback = @obj.subject_list_selection;
-            annotation(obj.figure_handle, 'textbox', 'String', 'Select side of the body:', 'Units', 'normal', 'Position', [.65, .87, .3, .08], 'VerticalAlignment', 'bottom');
-            obj.side_name = uicontrol(obj.figure_handle, 'Style', 'Edit', 'Enable', 'off', 'String', '', 'Units', 'normal', 'Position', [.65, .77, .3, .08]);
-            obj.side_list = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.sides, 'Units', 'normal', 'Position', [.65, .65, .3, .1]);
-            obj.side_list.Callback = @obj.side_list_selection;
             
             obj.condition_names = cell(1, obj.n_files);
             obj.condition_lists = cell(1, obj.n_files);
             for i = 1:obj.n_files
                 annotation(obj.figure_handle, 'textbox', 'String', sprintf('%d file condition:', i), 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .52, .92/obj.n_files - .02, .08], 'VerticalAlignment', 'bottom');
-                obj.condition_names{i} = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', '', 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .42, .92/obj.n_files - .02, .08]);
+                obj.condition_names{i} = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', conditions_{1, i}, 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .42, .92/obj.n_files - .02, .08]);
                 obj.condition_lists{i} = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.conditions, 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .2, .92/obj.n_files - .02, .2]);
                 obj.condition_lists{i}.Callback = @obj.condition_list_selection;
             end
             
-            obj.button_Save_Modules = uicontrol(obj.figure_handle, 'Style', 'pushbutton', 'String', 'Save modules with names chosen', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .1]);
+            obj.button_Save_Modules = uicontrol(obj.figure_handle, 'Style', 'pushbutton', 'String', 'Save analysis results with the selected name', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .1]);
             obj.button_Save_Modules.Callback = @obj.button_Save_Modules_pushed; 
             
             obj.parent_obj.database = obj;
@@ -131,12 +147,6 @@ classdef DataBase
         function subject_list_selection(obj, src, ~)
             n_row = src.Value;
             set(obj.subject_name, 'String', obj.subjects{n_row});
-        end
-        
-        
-        function side_list_selection(obj, src, ~)
-            n_row = src.Value;
-            set(obj.side_name, 'String', obj.sides{n_row});
         end
         
         
@@ -154,70 +164,167 @@ classdef DataBase
                 conditions_ = [conditions_, condition_];
             end
             
-            save_ = questdlg(sprintf('Save modules for subject "%s" %s body side \nconditions: %s?', ...
-                add_backslash(obj.subject_name.String, '_'), obj.side_name.String, add_backslash(strjoin(conditions_, ', '), '_')), ...
-                'Save modules', 'Yes', 'No', obj.parent_obj.yes_no_question_opts);
+            [~, idx, ~] = intersect(conditions_, obj.conditions, 'stable');
+            new_conditions = conditions_; new_conditions(idx) = [];
+            if ~isempty(new_conditions)
+                qustopts = obj.parent_obj.yes_no_question_opts;
+                qustopts.Default = 'Add';
+                
+                new_ = questdlg(sprintf('Conditions: \n%s\nare new for the database. Add them?', ...
+                add_backslash(strjoin(conditions_, ', '), '_')), ...
+                'New conditions', 'Add', 'Fix conditions', qustopts);
+                switch new_
+                    case 'Fix conditions'
+                        return;
+                end
+            end
+            
+            save_ = questdlg(sprintf('Save modules and maps for subject "%s" \nconditions: %s?', ...
+                add_backslash(obj.subject_name.String, '_'), add_backslash(strjoin(conditions_, ', '), '_')), ...
+                'Append analysis results to database', 'Yes', 'No', obj.parent_obj.yes_no_question_opts);
             switch save_
                 case 'Yes'
-                    obj.add_rows(obj.subject_name.String, obj.side_name.String, conditions_);
+                    obj.add_rows(obj.subject_name.String, conditions_);
                     delete(obj.figure_handle);
             end
         end        
         
         
-        function obj = add_rows(obj, subject_id, side, conditions)
+        function obj = add_rows(obj, subject_id, conditions)
             obj = obj.parent_obj.database;
             
+            side_id = obj.parent_obj.body_side;
             basic_patterns = obj.parent_obj.data.basic_patterns;
             muscle_weightings_ = obj.parent_obj.data.muscle_weightings;
             
             muscle_list = obj.parent_obj.data.muscle_list;
             emg_labels = obj.parent_obj.data.emg_label;
             
-            n_rows = size(cell2mat(basic_patterns)', 1);
+            BP = cell2mat(basic_patterns)';
+            n_rows = size(BP, 1);
             
             subject = repmat({subject_id}, n_rows, 1);
-            
-            condition = {};
-            for i = 1:obj.n_files 
-                condition = [condition; repmat(conditions(i), size(basic_patterns{i}, 2), 1)]; 
-            end
-            
-            side = repmat({side}, n_rows, 1);
-            
+            side = repmat({side_id}, n_rows, 1);
             nmf_stop_criteria = repmat(obj.parent_obj.data.config.nnmf_stop_criterion, n_rows, 1);
             
+            condition = cell(n_rows, 1);
+            
+            n_synergies = NaN(n_rows, 1);
+            reco_quality = NaN(n_rows, 1);
+            pattern_fwhm = NaN(n_rows, 1);
+            pattern_coa = NaN(n_rows, 1);
+            
             MW = NaN(n_rows, length(muscle_list));
-            col_shift = 0;
-            for i = 1:length(muscle_weightings_)
+            
+            row_idx = 1;
+            for i = 1:obj.n_files 
+                n_syn = obj.parent_obj.data.output_data(i).data.('muscle_synergy_number');
+                
+                condition(row_idx : row_idx+n_syn-1, 1) = repmat(conditions(i), n_syn, 1); 
+                
+                n_synergies(row_idx : row_idx+n_syn-1, 1) = repmat(n_syn, n_syn, 1);
+                reco_quality(row_idx : row_idx+n_syn-1, 1) = repmat(obj.parent_obj.data.output_data(i).data.('emg_reco_quality'), n_syn, 1);
+                pattern_fwhm(row_idx : row_idx+n_syn-1, 1) = obj.parent_obj.data.output_data(i).data.('pattern_fwhm')';
+                pattern_coa(row_idx : row_idx+n_syn-1, 1) = obj.parent_obj.data.output_data(i).data.('pattern_coa')';
+                
                 mw = muscle_weightings_{i}';
-                n_rows_ = size(mw, 1);
                 for j = 1:length(emg_labels{i})
                     label = emg_labels{i}(j);
                     idx = strcmp(muscle_list, label);
-                    MW(col_shift+1: col_shift+n_rows_, idx) = mw(:, j);
+                    MW(row_idx : row_idx+n_syn-1, idx) = mw(:, j);
                 end
-                col_shift = col_shift + n_rows_;
+                
+                row_idx = row_idx + n_syn;
             end
             
-            BP = cell2mat(basic_patterns)';
-            
-            rows_to_add = [subject, condition, side, nmf_stop_criteria, num2cell(MW), num2cell(BP)];
+            rows_to_add = [subject, condition, side, nmf_stop_criteria, num2cell(n_synergies), num2cell(reco_quality), ...
+                num2cell(pattern_fwhm), num2cell(pattern_coa), num2cell(MW), num2cell(BP)];
             rows_to_add = cell2table(rows_to_add, 'VariableNames', obj.module_database.Properties.VariableNames);
             
-            index2drop = obj.find_index2drop(obj.module_database, rows_to_add, obj.index_columns);
+            index2drop = obj.find_index2drop(obj.module_database, obj.module_idx_columns, rows_to_add);
+            [rows_to_add, idx_to_add] = obj.find_index2add(obj.module_idx_columns, rows_to_add, index2drop);
             
+            obj.module_database = [obj.module_database; rows_to_add];
+            
+            if ~isempty(rows_to_add)
+                obj.logger.message('INFO', sprintf('Modules data indexed "%s" added.', idx_to_add));
+            end
+            
+            
+            n_rows = obj.n_files;
+            n_points = obj.parent_obj.config.current_config.n_points;
+            
+            subject = repmat({subject_id}, n_rows, 1);
+            side = repmat({side_id}, n_rows, 1);
+             
+            condition = cell(n_rows, 1);
+            sacral_max = NaN(n_rows, 1);
+            lumbar_max = NaN(n_rows, 1);
+            sacral_fwhm = NaN(n_rows, 1);
+            lumbar_fwhm = NaN(n_rows, 1);
+            coact_index = NaN(n_rows, 1);
+            sacral = NaN(n_rows, n_points);
+            lumbar = NaN(n_rows, n_points);
+            
+            for i = 1:n_rows
+                condition(i, 1) = conditions(i);
+                max_ = obj.parent_obj.data.output_data(i).data.('motor_pool_max_activation');
+                fwhm_ = obj.parent_obj.data.output_data(i).data.('motor_pool_fwhm');
+                sacral_max(i, 1) = max_(1, 1);
+                lumbar_max(i, 1) = max_(1, 2);
+                sacral_fwhm(i, 1) = fwhm_(1, 1);
+                lumbar_fwhm(i, 1) = fwhm_(1, 2);
+                coact_index(i, 1) = obj.parent_obj.data.output_data(i).data.('motor_pool_coact_index');
+                sacral(i, :) = mean(obj.parent_obj.data.motorpools_activation_avg{i}(1:2, :), 1);
+                lumbar(i, :) = mean(obj.parent_obj.data.motorpools_activation_avg{i}(4:5, :), 1);
+            end
+            
+            
+            rows_to_add = [subject, condition, side, num2cell(sacral_max), num2cell(lumbar_max), ...
+                num2cell(sacral_fwhm), num2cell(lumbar_fwhm), num2cell(coact_index), num2cell(sacral), num2cell(lumbar)];
+            rows_to_add = cell2table(rows_to_add, 'VariableNames', obj.maps_database.Properties.VariableNames);
+            
+            index2drop = obj.find_index2drop(obj.maps_database, obj.maps_idx_columns, rows_to_add);
+            [rows_to_add, idx_to_add] = obj.find_index2add(obj.maps_idx_columns, rows_to_add, index2drop);
+            
+            obj.maps_database = [obj.maps_database; rows_to_add];
+            
+            if ~isempty(rows_to_add)
+                obj.logger.message('INFO', sprintf('Spinal maps data indexed "%s" added.', idx_to_add));
+            end
+            
+            
+            obj.save_database();
+            
+            obj.parent_obj.database = obj;
+            
+        end
+        
+        
+        function index2drop = find_index2drop(obj, base_table, index_columns, rows_to_add)
+            base_index = base_table{:, index_columns};
+            addrows_index = rows_to_add{:, index_columns};
+            if ~ isempty(base_index)
+                index2drop = ismember(obj.row_wise_cell_concat(base_index), obj.row_wise_cell_concat(addrows_index));
+            else
+                index2drop = zeros(size(addrows_index));
+            end
+        end
+        
+        
+        function [rows_to_add, idx_to_add] = find_index2add(obj, index_columns, rows_to_add, index2drop)
             if sum(index2drop) ~= 0 
                 if sum(index2drop) < size(rows_to_add, 1)
-                    to_add = rows_to_add{~ index2drop, obj.index_columns};
-                    to_add = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_add)), ', '); 
-                    to_drop = rows_to_add{index2drop, obj.index_columns};
+                    idx_to_add = rows_to_add{~ index2drop, index_columns};
+                    idx_to_add = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(idx_to_add)), ', '); 
+                    to_drop = rows_to_add{index2drop, index_columns};
                     to_drop = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_drop)), ', ');
 
-                    obj.logger.message('WARNING', sprintf('Synergy analysis data indexed "%s" added; Synergy analysis data indexed "%s" already exists in modules database.', to_add, to_drop));
+                    obj.logger.message('WARNING', sprintf('Synergy analysis data indexed "%s" added; Synergy analysis data indexed "%s" already exists in modules database.', idx_to_add, to_drop));
                     rows_to_add = rows_to_add(~ index2drop, :);
                 else
-                    to_drop = rows_to_add{:, obj.index_columns};
+                    idx_to_add = [];
+                    to_drop = rows_to_add{:, index_columns};
                     to_drop = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_drop)), ', ');
                     
                     obj.logger.message('WARNING', sprintf('Synergy analysis data indexed "%s" already exists in modules database. Nothing to add.', to_drop));
@@ -228,29 +335,8 @@ classdef DataBase
                     waitfor(warn_handler);
                 end
             else
-                to_add = rows_to_add{:, obj.index_columns};
-                to_add = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_add)), ', '); 
-            end
-            
-            obj.module_database = [obj.module_database; rows_to_add];
-            obj.save_database();
-            
-            if ~isempty(rows_to_add)
-                obj.logger.message('INFO', sprintf('Modules data indexed "%s" added.', to_add));
-            end
-            
-            obj.parent_obj.database = obj;
-            
-        end
-        
-        
-        function index2drop = find_index2drop(obj, base_table, rows_to_add, index_columns)
-            base_index = base_table{:, index_columns};
-            addrows_index = rows_to_add{:, index_columns};
-            if ~ isempty(base_index)
-                index2drop = ismember(obj.row_wise_cell_concat(base_index), obj.row_wise_cell_concat(addrows_index));
-            else
-                index2drop = zeros(size(addrows_index));
+                idx_to_add = rows_to_add{:, index_columns};
+                idx_to_add = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(idx_to_add)), ', '); 
             end
         end
                 

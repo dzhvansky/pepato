@@ -56,7 +56,6 @@ if ~isempty(artifact_cycles)
         end
     end
     close(fh);
-else
-    disp('Suspicious cycles not found.');
 end
+
 end
