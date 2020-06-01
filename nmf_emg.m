@@ -13,14 +13,11 @@ end
 nmf_options = cell2struct({[], [], 100, 1000, false, false, true}, {'isynfiltcoef', 'synfiltcoef_filter_par', 'niter', 'nmaxiter', 'print', 'plot', 'updateW'}, 2);
 [W,C,~] = find_leeseung(emg_normalized', rand(size(emg_normalized, 2), n_synergies), rand(n_synergies, size(emg_normalized, 1)), n_synergies, nmf_options);
 
-Wmax = max(W);
-if ndims(W) > 1
-    Wn = W ./ repelem(Wmax, size(W,1), 1); %Normalize W and C to maximum W
-    Cn = C .* repelem(Wmax', 1, size(C,2));
-else
-    Wn = W / Wmax;
-    Cn = C * Wmax;
-end
+% Wmax = max(W, 1);
+% Wn = W ./ repelem(Wmax, size(W,1), 1); %Normalize W and C to maximum W
+Wsum = sum(W, 1);
+Wn = W ./ repelem(Wsum, size(W,1), 1); %Normalize W and C to maximum W
+Cn = C .* repelem(Wsum', 1, size(C,2));
 
 if size(Cn, 2) > n_points
     tempCmean = mean(reshape(Cn, size(Cn, 1), n_points, []), 3); %  gait cycle averaging
@@ -29,7 +26,7 @@ else
 end
 
 
-[~,im] = max(tempCmean',[],1);
+[~,im] = max(tempCmean', [], 1);
 [~,ix] = sort(im);
 Cn(1:n_synergies, :) = Cn(ix(1:n_synergies), :); 
 Wn(:, 1:n_synergies) = Wn(:, ix(1:n_synergies));

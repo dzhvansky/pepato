@@ -8,11 +8,13 @@ classdef DataBase
         
         n_files;
         
-        module_idx_columns;
-        maps_idx_columns;
+        module_idx_columns = {'subject', 'condition', 'side', 'nmf_stop_criteria'};
+        maps_idx_columns = {'subject', 'condition', 'side'};
         
         module_database;
         maps_database;
+        clustering;
+        maps_patterns;
         
         subjects;
         conditions;
@@ -49,21 +51,47 @@ classdef DataBase
     
     methods
         
-        function obj = init(obj, parent_obj, database_file)
+        function obj = init(obj, parent_obj, database_file, N_clusters)
             obj.parent_obj = parent_obj;
             obj.FontSize = obj.parent_obj.FontSize;
             obj.logger = obj.parent_obj.logger;
             
             obj.database_file = database_file;
-            obj.module_idx_columns = {'subject', 'condition', 'side', 'nmf_stop_criteria'};
-            obj.maps_idx_columns = {'subject', 'condition', 'side'};
             
             try
-                 loaded = load(obj.database_file);
-                 obj.module_database = loaded.module_database;
-                 obj.maps_database = loaded.maps_database;
+                loaded = load(obj.database_file);
+                obj.module_database = loaded.('module_database');
+                obj.maps_database = loaded.('maps_database');
+                
+                try
+                    obj.clustering = loaded.(['clustering_' int2str(N_clusters)]);
+                catch
+                    obj.logger.message('WARNING', sprintf('No clustering precomputed for %d clusters in the database. Modules comparison with reference will not be available.', N_clusters));
+                end
+                try
+                    obj.maps_patterns = loaded.('maps_patterns');
+                catch
+                    obj.logger.message('WARNING', 'No spinal maps patterns precomputed in the database. Maps comparison with reference will not be available.');
+                end
+                
+                columns = obj.module_database.Properties.VariableNames;
+                idx_weights = find_cell_contains(columns, '_weight');
+                muscle_list = cellfun (@(x) x(1:end-7), columns(idx_weights), 'un', 0);
+                init_list = obj.parent_obj.data.muscle_list;
+                try
+                    assert((length(muscle_list) == length(init_list)) & (length(intersect(muscle_list, init_list)) == length(init_list)));
+                catch
+                    obj.database_file = [];
+                    obj.module_database = [];
+                    obj.maps_database = [];
+                    obj.logger.message('ERROR', sprintf('Muscle list in %s database [%s] does not match initial PEPATO list [%s]. Database is not loaded. Please change the database or initial muscle list.', ...
+                        obj.database_file, strjoin(muscle_list, ', '), strjoin(init_list, ', ')));
+                end
+                
             catch except
-                obj.logger.message('WARNING', 'Modules database does not exist or is corrupted. Creating empty database.', except);
+                obj.database_file = [obj.database_file(1:end-4) '_' rand_string_gen(3) '.mat'];
+                obj.logger.message('WARNING', sprintf('Database does not exist or is corrupted. Comparison with reference will not be available. Creating empty database %s.', obj.database_file), except);
+                
                 
                 muscle_list = obj.parent_obj.data.muscle_list;
                 n_points = obj.parent_obj.config.current_config.n_points;
@@ -76,17 +104,25 @@ classdef DataBase
                 obj.maps_database.Properties.VariableNames = [obj.maps_idx_columns, 'sacral_max', 'lumbar_max', 'sacral_fwhm', 'lumbar_fwhm', 'coact_index', ...
                     strcat({'sacral_pat_'}, strsplit(num2str(1:n_points))), strcat({'lumbar_pat_'}, strsplit(num2str(1:n_points)))];
                 
-                obj.save_database();
+                obj.save_database('init');
             end
             
             obj.parent_obj.database = obj;
         end
         
         
-        function obj = save_database(obj)        
+        function obj = save_database(obj, init_flag)
+            if nargin < 2
+                init_flag = 'append';
+            end
             module_database = obj.module_database;
             maps_database = obj.maps_database;
-            save(obj.database_file, 'module_database', 'maps_database');
+            switch init_flag
+                case 'init'
+                    save(obj.database_file, 'module_database', 'maps_database');
+                case 'append'
+                    save(obj.database_file, 'module_database', 'maps_database', '-append');
+            end
         end
         
         
@@ -110,15 +146,7 @@ classdef DataBase
         function obj = input_names(obj)
             obj = obj.parent_obj.database.get_database_info();
             
-            filenames = obj.parent_obj.data.filenames;
-            N = length(filenames);
-            conditions_ = cell(1, N);
-            for i = 1:N
-                f = filenames(i);
-                splitted = strsplit(f{:}, '_');
-                conditions_{1, i} = strjoin(splitted(5:end), '_');
-            end
-            subject_ = splitted{2};
+            [subject_, conditions_] = get_trial_info(obj.parent_obj.data.filenames);
             
             obj.figure_handle = figure('name', 'Save analysis results', 'NumberTitle','off', 'Units', 'normal', 'OuterPosition', [.2 .2 .6 .6], 'WindowStyle', 'modal'); clf;
             set(obj.figure_handle, 'MenuBar', 'none'); set(obj.figure_handle, 'ToolBar', 'none');
@@ -242,7 +270,7 @@ classdef DataBase
             rows_to_add = cell2table(rows_to_add, 'VariableNames', obj.module_database.Properties.VariableNames);
             
             index2drop = obj.find_index2drop(obj.module_database, obj.module_idx_columns, rows_to_add);
-            [rows_to_add, idx_to_add] = obj.find_index2add(obj.module_idx_columns, rows_to_add, index2drop);
+            [rows_to_add, idx_to_add] = obj.find_index2add(obj.module_idx_columns, rows_to_add, index2drop, 'Modules');
             
             obj.module_database = [obj.module_database; rows_to_add];
             
@@ -285,7 +313,7 @@ classdef DataBase
             rows_to_add = cell2table(rows_to_add, 'VariableNames', obj.maps_database.Properties.VariableNames);
             
             index2drop = obj.find_index2drop(obj.maps_database, obj.maps_idx_columns, rows_to_add);
-            [rows_to_add, idx_to_add] = obj.find_index2add(obj.maps_idx_columns, rows_to_add, index2drop);
+            [rows_to_add, idx_to_add] = obj.find_index2add(obj.maps_idx_columns, rows_to_add, index2drop, 'Maps');
             
             obj.maps_database = [obj.maps_database; rows_to_add];
             
@@ -312,7 +340,7 @@ classdef DataBase
         end
         
         
-        function [rows_to_add, idx_to_add] = find_index2add(obj, index_columns, rows_to_add, index2drop)
+        function [rows_to_add, idx_to_add] = find_index2add(obj, index_columns, rows_to_add, index2drop, base_name)
             if sum(index2drop) ~= 0 
                 if sum(index2drop) < size(rows_to_add, 1)
                     idx_to_add = rows_to_add{~ index2drop, index_columns};
@@ -320,14 +348,14 @@ classdef DataBase
                     to_drop = rows_to_add{index2drop, index_columns};
                     to_drop = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_drop)), ', ');
 
-                    obj.logger.message('WARNING', sprintf('Synergy analysis data indexed "%s" added; Synergy analysis data indexed "%s" already exists in modules database.', idx_to_add, to_drop));
+                    obj.logger.message('WARNING', sprintf('%s analysis data indexed "%s" added; %s analysis data indexed "%s" already exists in modules database.', base_name, idx_to_add, base_name, to_drop));
                     rows_to_add = rows_to_add(~ index2drop, :);
                 else
                     idx_to_add = [];
                     to_drop = rows_to_add{:, index_columns};
                     to_drop = strjoin(obj.find_unique_cells(obj.row_wise_cell_concat(to_drop)), ', ');
                     
-                    obj.logger.message('WARNING', sprintf('Synergy analysis data indexed "%s" already exists in modules database. Nothing to add.', to_drop));
+                    obj.logger.message('WARNING', sprintf('%s analysis data indexed "%s" already exists in modules database. Nothing to add.', base_name, to_drop));
                     rows_to_add = {};
                     
                     warn_handler = warndlg('\color{blue} Nothing to add to the database. All data with the specified index is already in the database.', 'Database WARNING', struct('WindowStyle','modal', 'Interpreter','tex'));

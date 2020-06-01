@@ -30,10 +30,15 @@ classdef PepatoData
         nmf_r2;
         motorpools_activation;
         motorpools_activation_avg;
+        sacral;
+        lumbar;
+        module_info;
         
         colors;
         muscles;
         
+        % do not change the order of the muscles here! 
+        % (if necessary, you can add muscle anywhere in this list but preserving the original order)
         muscle_list = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'PeLo', 'GaMe', 'GaLa', 'Sol'};
         all_colors;         
         
@@ -74,8 +79,8 @@ classdef PepatoData
                     0.9290    0.6940    0.1250
                     ];
             
-            obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa',... 
-                'muscle_module_similarity', 'motor_pool_max_activation', 'motor_pool_fwhm', 'motor_pool_coact_index', 'motor_pool_similarity'};
+            obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa', 'muscle_module_similarity', ...
+                'motor_pool_max_activation', 'motor_pool_fwhm', 'motor_pool_coact_index', 'motor_pool_similarity'};
             
             obj.parent_obj.data = obj;
         end
@@ -223,6 +228,8 @@ classdef PepatoData
             
             obj.motorpools_activation = cell(1, obj.n_files);
             obj.motorpools_activation_avg = cell(1, obj.n_files);
+            obj.sacral = cell(1, obj.n_files);
+            obj.lumbar = cell(1, obj.n_files);
             
             for i = 1 : obj.n_files
                 [emg_mean, ~, ~, ~] = emg_cycle_averaging(obj.emg_enveloped{i}, N_points, 2);
@@ -230,17 +237,17 @@ classdef PepatoData
                 obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', obj.emg_label{i});       
                 obj.motorpools_activation_avg{i} = squeeze(mean(reshape(obj.motorpools_activation{i}, [6 6 size(obj.motorpools_activation{i}, 2)]), 1));                      
 
-                sacral = mean(obj.motorpools_activation_avg{i}(1:2, :), 1);
-                lumbar = mean(obj.motorpools_activation_avg{i}(4:5, :), 1);
+                obj.sacral{i} = mean(obj.motorpools_activation_avg{i}(1:2, :), 1);
+                obj.lumbar{i} = mean(obj.motorpools_activation_avg{i}(4:5, :), 1);
 
-                [~, sacral_max] = max(sacral);
+                [~, sacral_max] = max(obj.sacral{i});
                 sacral_max = sacral_max / N_points * 100;
-                [~, lumbar_max] = max(lumbar);
+                [~, lumbar_max] = max(obj.lumbar{i});
                 lumbar_max = lumbar_max / N_points * 100;
-                [sacral_fwhm, ~] = pattern_analisys(sacral', N_points);
-                [lumbar_fwhm, ~] = pattern_analisys(lumbar', N_points);
+                [sacral_fwhm, ~] = pattern_analisys(obj.sacral{i}', N_points);
+                [lumbar_fwhm, ~] = pattern_analisys(obj.lumbar{i}', N_points);
 
-                CI = co_activation_index(sacral, lumbar);
+                CI = co_activation_index(obj.sacral{i}, obj.lumbar{i});
 
                 obj.output_data(i).data.('motor_pool_max_activation') = [sacral_max lumbar_max];
                 obj.output_data(i).data.('motor_pool_fwhm') = [sacral_fwhm lumbar_fwhm];
@@ -252,29 +259,83 @@ classdef PepatoData
         end
         
         
+        function obj = module_compare(obj, clustering)
+            obj.module_info = cell(1, obj.n_files);
+            
+            for i = 1 : obj.n_files
+                N_clusters = clustering.('N_clusters');
+                cluster_center = clustering.('cluster_center');
+                
+                [features, ~, ~, ~] = get_cluster_features(obj.muscle_weightings{i}', obj.basic_patterns{i}', clustering.('scaler_mean'), clustering.('scaler_std'));
+                n_rows = size(features, 1);
+                n_features = size(features, 2);
+                
+                cluster_idx = zeros(n_rows, 1);
+                nearest_cluster_dist = zeros(n_rows, 1);
+                for j = 1:n_rows
+                    [nearest_cluster_dist(j), cluster_idx(j)] = min(sqrt(sum((cluster_center - repmat(features(j, :), N_clusters, 1)) .^ 2, 2) / n_features));
+                end
+                include_mask = get_cluster_mask(features, cluster_idx, cluster_center, clustering.('mean_threshold'), clustering.('max_threshold'));
+                
+                obj.output_data(i).data.('muscle_module_similarity') = nearest_cluster_dist';
+                
+                module_info_ = cell2struct({include_mask', cluster_idx', nearest_cluster_dist'}, ...
+                    {'is_clustered', 'n_cluster', 'nearest_cluster_dist'}, 2);
+                obj.module_info{i} = module_info_;
+            end
+            
+            obj.parent_obj.data = obj;
+        end
+        
+        
+        function obj = maps_compare(obj, maps_patterns)
+            [~, conditions] = get_trial_info(obj.filenames);
+            
+            for i = 1 : obj.n_files
+                sacral_mean = maps_patterns.(conditions{i}).('sacral').('mean_val');
+                lumbar_mean = maps_patterns.(conditions{i}).('lumbar').('mean_val');
+                
+                mean_pts = length(sacral_mean);
+                curr_pts = length(obj.sacral{i});
+                if mean_pts ~= curr_pts
+                    sacral_mean = interp1(sacral_mean, linspace(1, mean_pts, curr_pts));
+                    lumbar_mean = interp1(lumbar_mean, linspace(1, mean_pts, curr_pts));
+                end
+                
+                sacral_corrcoef = corrcoef(sacral_mean, obj.sacral{i});
+                lumbar_corrcoef = corrcoef(lumbar_mean, obj.lumbar{i});
+                
+                obj.output_data(i).data.('motor_pool_similarity') = [sacral_corrcoef(1, 2), lumbar_corrcoef(1, 2)];
+            end
+            
+            obj.parent_obj.data = obj;
+        end
+        
+        
         function obj = write_output_yaml(obj, file_name)
             data_types = cell2struct({'value', 'value', 'vector', 'vector', 'vector', 'vector', 'vector', 'value', 'vector'}, obj.output_params, 2);
             
-            fid = fopen(file_name, 'w');
+            fout = fopen(file_name, 'w');
             
             for i = 1 : obj.n_files
-                fprintf(fid, '%s:\n', obj.filenames{i});
+                fprintf(fout, '%s:\n', obj.filenames{i});
                 for j = 1 : length(obj.output_params)
                     param_name = obj.output_params{j};
+                    
                     param_type = data_types.(param_name);
                     param_value = obj.output_data(i).data.(param_name);
                     
-                    fprintf(fid, '\tpi_name: %s\n', param_name);
-                    fprintf(fid, '\t\ttype: %s\n', param_type);
+                    fprintf(fout, '\tpi_name: %s\n', param_name);
+                    fprintf(fout, '\t\ttype: %s\n', param_type);
                     if strcmp(param_type, 'value')
-                        fprintf(fid, '\t\tvalue: %s\n', num2str(param_value));
+                        fprintf(fout, '\t\tvalue: %s\n', num2str(param_value));
                     elseif strcmp(param_type, 'vector')
-                        fprintf(fid, '\t\tvalue: [%s]\n', strjoin(arrayfun(@(x) num2str(x), param_value, 'UniformOutput', false), ', '));
+                        fprintf(fout, '\t\tvalue: [%s]\n', strjoin(arrayfun(@(x) num2str(x), param_value, 'UniformOutput', false), ', '));
                     end
                 end
             end
             
-            fclose(fid);
+            fclose(fout);
         end
         
         
@@ -296,11 +357,16 @@ classdef PepatoData
 
             obj.emg_enveloped = [];
             obj.emg_max = [];
-
+            
+            obj.emg_patterns = [];
+            obj.emg_patterns_sd = [];
             obj.muscle_weightings = [];
             obj.basic_patterns = [];
+            obj.basic_patterns_sd = [];
             obj.motorpools_activation = [];
             obj.motorpools_activation_avg = [];
+            obj.sacral = [];
+            obj.lumbar = [];
             
             obj.parent_obj.data = obj;
         end

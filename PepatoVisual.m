@@ -214,11 +214,11 @@ classdef PepatoVisual
             obj.parent_obj.visual = obj;
         end
         
-        function obj = draw_muscle_synergies(obj, data)
+        function obj = draw_muscle_synergies(obj, data, clustering)
             n_handle = 6;
             
             for i = 1 : obj.n_files
-                
+                delete(obj.second_level_tab_handle(n_handle, i));
                 obj.second_level_tab_handle(n_handle, i) = uitab(obj.second_level_tab_group{i}, 'Title', obj.second_level_tab_names{n_handle}); 
 
                 obj.first_level_tab_group.SelectedTab = obj.first_level_tab_handle(i);
@@ -226,7 +226,7 @@ classdef PepatoVisual
 
                 FigSynergies(obj.second_level_tab_handle(n_handle, i), data.emg_patterns{i}, data.emg_patterns_sd{i}, ...
                     data.basic_patterns{i}, data.basic_patterns_sd{i}, data.muscle_weightings{i}, data.nmf_r2{i}, ...
-                    data.emg_label{i}, data.all_colors);      
+                    data.emg_label{i}, data.all_colors, clustering, data.module_info{i});      
             end            
             
             obj.refresh_report(data);
@@ -235,9 +235,10 @@ classdef PepatoVisual
         end
         
         
-        function obj = draw_spinal_maps(obj, data)
+        function obj = draw_spinal_maps(obj, data, maps_patterns)
             n_handle = 7;
             colormap(jetnew(32,-1)); % recalibrate colormap
+            [~, conditions] = get_trial_info(data.filenames);
         
             for i = 1 : obj.n_files
                 delete(obj.second_level_tab_handle(n_handle, i));
@@ -246,7 +247,8 @@ classdef PepatoVisual
                 obj.first_level_tab_group.SelectedTab = obj.first_level_tab_handle(i);
                 obj.second_level_tab_group{i}.SelectedTab = obj.second_level_tab_handle(n_handle, i);
 
-                FigSpinalmaps(obj.second_level_tab_handle(n_handle, i), data.motorpools_activation{i}, data.motorpools_activation_avg{i});
+                FigSpinalmaps(obj.second_level_tab_handle(n_handle, i), data.motorpools_activation{i}, data.motorpools_activation_avg{i}, ...
+                    maps_patterns.(conditions{i}), data.sacral{i}, data.lumbar{i});
             end
             
             obj.refresh_report(data);

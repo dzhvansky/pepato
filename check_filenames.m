@@ -7,8 +7,8 @@ if ~strcmp(FileDat, '')
     
     N = length(FileDat);
     
-    subjects = cell(1, N);
-    conditions = cell(1, N);
+    subject = cell(1, N);
+    trial = cell(1, N);
     
     for i = 1:N
         
@@ -17,10 +17,10 @@ if ~strcmp(FileDat, '')
         
         % check filename parts
         try
-            subjects{1, i} = splitted{2};
-            conditions{1, i} = splitted{4};
+            subject{1, i} = splitted{2};
+            trial{1, i} = splitted{4};
             result = strcmp(splitted{1}, 'subject') && strcmp(splitted{3}, 'emg') && ...
-                (length(subjects{1, i})==4) && (length(conditions{1, i})==3);   
+                (length(subject{1, i})==4) && (length(trial{1, i})==3);   
         catch
             result = false;
         end
@@ -34,7 +34,7 @@ if ~strcmp(FileDat, '')
     end
     
     % check all conditions are unique for the only one subject
-    result = result && (length(unique(subjects))==1) && (length(unique(conditions))==N);
+    result = result && (length(unique(subject))==1) && (length(unique(trial))==N);
     
 else
     result = false;

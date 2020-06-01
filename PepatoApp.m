@@ -49,7 +49,7 @@ classdef PepatoApp < handle
         button_SaveProcessed;       
         
         criteria_list;
-        button_SaveModules;
+        button_UpdateDatabase;
         
         yes_no_question_opts;
         
@@ -141,27 +141,29 @@ classdef PepatoApp < handle
             obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {20, 400, 200, 8, 10, 'N=4'});
             obj.data = PepatoData().init(obj, muscle_list);
             obj.visual = PepatoVisual().init(obj, obj.visual_panel);
-            obj.database = DataBase().init(obj, database_filename);
+            n_basic_patterns = 4;
+            obj.database = DataBase().init(obj, database_filename, n_basic_patterns);
             
         end
         
         
         function ResearchMode(obj, ~, ~)
-            if strcmp(obj.menu_item_mode.Checked, 'on')
-                obj.menu_item_mode.Checked = 'off';
-                obj.logger.message('INFO', 'Research mode OFF');
-                
-                delete(obj.research_panel);
-            else 
-                obj.menu_item_mode.Checked = 'on';
-                obj.logger.message('INFO', 'Research mode ON');
-                
-                obj.research_panel = uipanel(obj.control_panel, 'Title', 'Research settings','Units', 'normal', 'Position', [.05 .11 .9 .279], 'FontSize', obj.FontSize);
-                syn_criteria_panel = uipanel(obj.research_panel, 'Title', 'Synergies criteria','Units', 'normal', 'Position', [.05 .2 .9 .8], 'FontSize', obj.FontSize);
-                obj.criteria_list = uicontrol(syn_criteria_panel, 'Style', 'ListBox', 'String', {'BLF', 'N=2', 'N=3', 'N=4', 'N=5', 'N=6', 'R=0.90', 'R=0.95'}, 'Units', 'normal', 'Position', [.0 .0 1. 1.]);
-                obj.criteria_list.Callback = @obj.config_list_selection;
-                obj.button_SaveModules = uicontrol(obj.research_panel, 'Style', 'pushbutton', 'String', 'Update database', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .15]);
-                obj.button_SaveModules.Callback = @obj.button_SaveModules_pushed;
+            switch obj.menu_item_mode.Checked
+                case 'on'
+                    obj.menu_item_mode.Checked = 'off';
+                    obj.logger.message('INFO', 'Research mode OFF');
+
+                    delete(obj.research_panel);
+                case 'off' 
+                    obj.menu_item_mode.Checked = 'on';
+                    obj.logger.message('INFO', 'Research mode ON');
+
+                    obj.research_panel = uipanel(obj.control_panel, 'Title', 'Research settings','Units', 'normal', 'Position', [.05 .11 .9 .279], 'FontSize', obj.FontSize);
+                    syn_criteria_panel = uipanel(obj.research_panel, 'Title', 'Synergies criteria','Units', 'normal', 'Position', [.05 .2 .9 .8], 'FontSize', obj.FontSize);
+                    obj.criteria_list = uicontrol(syn_criteria_panel, 'Style', 'ListBox', 'String', {'BLF', 'N=2', 'N=3', 'N=4', 'N=5', 'N=6', 'R=0.90', 'R=0.95'}, 'Units', 'normal', 'Position', [.0 .0 1. 1.]);
+                    obj.criteria_list.Callback = @obj.config_list_selection;
+                    obj.button_UpdateDatabase = uicontrol(obj.research_panel, 'Style', 'pushbutton', 'String', 'Update database', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .15]);
+                    obj.button_UpdateDatabase.Callback = @obj.button_UpdateDatabase_pushed;
             end            
         end
         
@@ -172,7 +174,7 @@ classdef PepatoApp < handle
         end
         
         
-        function button_SaveModules_pushed(obj, ~, ~)
+        function button_UpdateDatabase_pushed(obj, ~, ~)
             obj.database.input_names();
         end
         
@@ -449,26 +451,32 @@ classdef PepatoApp < handle
         
         
         function button_Analysis_pushed(obj, ~, ~)
-            switch obj.menu_item_mode.Checked
-                case 'off'
-                    obj.button_Analysis.Enable = 'off';
-            end
+            obj.button_Analysis.Enable = 'off';
             
             switch obj.visual.reproduce
                 case 'No'
                     obj.proc_pipeline = [obj.proc_pipeline, 'analysis'];
             end
             
-            obj.data.muscle_synergies();        
-            obj.visual.draw_muscle_synergies(obj.data);
+            obj.data.muscle_synergies();
+            try
+                obj.data.module_compare(obj.database.clustering);
+            catch except
+                obj.logger.message('WARNING', 'Modules comparison with reference is not available. Database error.', except);
+            end
+            obj.visual.draw_muscle_synergies(obj.data, obj.database.clustering);
             obj.logger.message('INFO', sprintf('Synergy analysis done. NMF stop criteria: "%s"', obj.data.config.nnmf_stop_criterion{:}));
             
             obj.data.spinal_maps();
-            obj.visual.draw_spinal_maps(obj.data);
+            try
+                obj.data.maps_compare(obj.database.maps_patterns);
+            catch except
+                obj.logger.message('WARNING', 'Spinal maps comparison with reference is not available. Database error.', except);
+            end    
+            obj.visual.draw_spinal_maps(obj.data, obj.database.maps_patterns);
             obj.logger.message('INFO', 'Spinal maps analysis done.');
-            
-%             TODO: compare with reference
 
+            obj.button_Analysis.Enable = 'on';
             obj.button_SaveResults.Enable = 'on';
             obj.button_SaveProcessed.Enable = 'on';
         end
@@ -479,9 +487,7 @@ classdef PepatoApp < handle
                 old_config_name = obj.data.config.Properties.RowNames{:};
                 new_config_name = inputdlg(sprintf('Config was changed.\nSelect name for new config:'), 'New config name', [1 60], {[old_config_name '_']});
                 if isempty(new_config_name)
-                    symbols = ['a':'z' 'A':'Z' '0':'9'];
-                    random_hash_8 = symbols(randi(numel(symbols),[1 8]));
-                    new_config_name = [old_config_name '_' random_hash_8];
+                    new_config_name = [old_config_name '_' rand_string_gen(3)];
                 end
                 obj.data.config.Properties.RowNames = {new_config_name};
             end
