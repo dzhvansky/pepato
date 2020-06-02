@@ -1,4 +1,6 @@
 function [Wn, Cn, R2] = nmf_emg(emg_normalized, n_synergies, n_points, replicates)
+
+n_samples = size(emg_normalized, 1);
 n_emg = size(emg_normalized, 2);
 
 if nargin < 3
@@ -8,19 +10,28 @@ elseif nargin < 4
 end
 
 % nmf_options = statset('MaxIter',1000,'TolFun',1e-5,'TolX',1e-5); %Nonnegative Matrix Factorization Options
-% [W,C,~] = nnmf(emg_normalized', n_synergies, 'replicates', replicates, 'options', nmf_options, 'algorithm', 'mult'); %W = weights, C = coefficients, D = residue
-% [W,C,~] = nnmf(emg_normalized', n_synergies);
-nmf_options = cell2struct({[], [], 100, 1000, false, false, true}, {'isynfiltcoef', 'synfiltcoef_filter_par', 'niter', 'nmaxiter', 'print', 'plot', 'updateW'}, 2);
-[W,C,~] = find_leeseung(emg_normalized', rand(size(emg_normalized, 2), n_synergies), rand(n_synergies, size(emg_normalized, 1)), n_synergies, nmf_options);
+% [W_best,C_best,~] = nnmf(emg_normalized', n_synergies, 'replicates', replicates, 'options', nmf_options, 'algorithm', 'mult'); %W = weights, C = coefficients, D = residue
 
-% Wmax = max(W, 1);
-% Wn = W ./ repelem(Wmax, size(W,1), 1); %Normalize W and C to maximum W
-Wsum = sum(W, 1);
-Wn = W ./ repelem(Wsum, size(W,1), 1); %Normalize W and C to maximum W
-Cn = C .* repelem(Wsum', 1, size(C,2));
+nmf_options = cell2struct({[], [], [50 10 1e-5], 1000, false, false, true}, ...
+    {'isynfiltcoef', 'synfiltcoef_filter_par', 'niter', 'nmaxiter', 'print', 'plot', 'updateW'}, 2);
+R_best = -1;
+for i = 1:replicates
+    [W,C,R] = find_leeseung(emg_normalized', rand(n_emg, n_synergies), rand(n_synergies, n_samples), n_synergies, nmf_options);
+    if R(end) > R_best
+        W_best = W;
+        C_best = C;
+        R_best = R(end);
+    end
+end
 
-if size(Cn, 2) > n_points
-    tempCmean = mean(reshape(Cn, size(Cn, 1), n_points, []), 3); %  gait cycle averaging
+% Wmax = max(W_best, 1);
+% Wn = W_best ./ repelem(Wmax, n_emg, 1); %Normalize W and C to maximum W
+Wsum = sum(W_best, 1);
+Wn = W_best ./ repelem(Wsum, n_emg, 1); %Normalize W and C to sum W
+Cn = C_best .* repelem(Wsum', 1, n_samples);
+
+if n_samples > n_points
+    tempCmean = mean(reshape(Cn, n_synergies, n_points, []), 3); %  gait cycle averaging
 else
     tempCmean = Cn;
 end
@@ -33,7 +44,7 @@ Wn(:, 1:n_synergies) = Wn(:, ix(1:n_synergies));
 
 R2 = NaN(1, n_emg+1); %Variance accounted for (VAF)
 
-emg_reconstr = W * C;
+emg_reconstr = W_best * C_best;
 R2(1) = r_squared(emg_normalized, emg_reconstr'); %R_squared total
 
 for i = 1:n_emg

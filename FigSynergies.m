@@ -229,8 +229,10 @@ classdef FigSynergies < handle
                 ylim([0 n_muscles/n_points_]);
                 
                 subplot('Position', [.55, .08+(N_clusters-i)*.83/N_clusters, .35, .75/N_clusters]);
-                bar(1:n_muscles, weight_mean(i, :), 'FaceColor', [.8 .8 .8]); hold on;
+                h = bar(1:n_muscles, weight_mean(i, :), 'FaceColor', [.8 .8 .8]); hold on;
+                h.Annotation.LegendInformation.IconDisplayStyle = 'off';
                 er = errorbar(1:n_muscles, weight_mean(i, :), weight_sd(i, :), 'Tag', ['weight_' num2str(i)]);
+                er.Annotation.LegendInformation.IconDisplayStyle = 'off';
                 er.Color = [.0 .0 .0];
                 er.LineStyle = 'none';
                 if i < N_clusters
@@ -269,7 +271,8 @@ classdef FigSynergies < handle
                 legend('-DynamicLegend', 'Location', 'best');
                 
                 axes(axes_weight);
-                plot(obj.w_normalized(:, i)', 'Color', obj.colors(i,:), 'Marker', 'o', 'LineWidth', .5, 'MarkerEdgeColor','None', 'MarkerFaceColor',[.3 .3 .3], 'MarkerSize', 4);
+                plot(obj.w_normalized(:, i)', 'Color', obj.colors(i,:), 'Marker', 'o', 'LineWidth', .5, 'MarkerEdgeColor','None', 'MarkerFaceColor',[.3 .3 .3], 'MarkerSize', 4, 'DisplayName', name);
+                legend('-DynamicLegend', 'Location', 'best');
             end
         end
         

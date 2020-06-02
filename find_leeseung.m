@@ -89,7 +89,7 @@ end
 
 % loop while the rsq (abs) difference in the last iterwin iterations is less then errtol
 it=0;
-while (it<niter || any(abs(diff(rsq(inderr)))>errtol) ) && it<opt.nmaxiter
+while (it<niter || any(abs(diff(rsq(inderr)))>errtol)) && it<opt.nmaxiter
   it = it+1;
   if opt.print
     disp(sprintf('Iteration %i - time elspsed: %6.4f',it,toc))
