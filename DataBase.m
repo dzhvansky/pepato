@@ -152,20 +152,23 @@ classdef DataBase
             set(obj.figure_handle, 'MenuBar', 'none'); set(obj.figure_handle, 'ToolBar', 'none');
             
             annotation(obj.figure_handle, 'textbox', 'String', 'Select subject name:', 'Units', 'normal', 'Position', [.05, .87, .55, .08], 'VerticalAlignment', 'bottom');
-            obj.subject_name = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', subject_, 'Units', 'normal', 'Position', [.05, .77, .55, .08]);
-            obj.subject_list = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.subjects, 'Units', 'normal', 'Position', [.05, .65, .55, .1]);
+            obj.subject_name = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', subject_, 'Units', 'normal', 'Position', [.05, .77, .55, .08], 'FontSize', obj.FontSize+2);
+            obj.subject_list = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.subjects, 'Units', 'normal', 'Position', [.05, .65, .55, .1], 'FontSize', obj.FontSize+2);
             obj.subject_list.Callback = @obj.subject_list_selection;
+            
+            annotation(obj.figure_handle, 'textbox', 'String', sprintf('Side of the body: %s', obj.parent_obj.body_side), 'Units', 'normal', 'Position', [.65, .77, .3, .08], 'VerticalAlignment', 'bottom');
+            annotation(obj.figure_handle, 'textbox', 'String', sprintf('NMF stop criteria: %s', obj.parent_obj.data.config.nnmf_stop_criterion{:}), 'Units', 'normal', 'Position', [.65, .65, .3, .1], 'VerticalAlignment', 'middle');
             
             obj.condition_names = cell(1, obj.n_files);
             obj.condition_lists = cell(1, obj.n_files);
             for i = 1:obj.n_files
                 annotation(obj.figure_handle, 'textbox', 'String', sprintf('%d file condition:', i), 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .52, .92/obj.n_files - .02, .08], 'VerticalAlignment', 'bottom');
-                obj.condition_names{i} = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', conditions_{1, i}, 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .42, .92/obj.n_files - .02, .08]);
-                obj.condition_lists{i} = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.conditions, 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .2, .92/obj.n_files - .02, .2]);
+                obj.condition_names{i} = uicontrol(obj.figure_handle, 'Style', 'Edit', 'String', conditions_{1, i}, 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .42, .92/obj.n_files - .02, .08], 'FontSize', obj.FontSize+2);
+                obj.condition_lists{i} = uicontrol(obj.figure_handle, 'Style', 'ListBox', 'String', obj.conditions, 'Units', 'normal', 'Position', [.05 + (i-1)*.92/obj.n_files, .2, .92/obj.n_files - .02, .2], 'FontSize', obj.FontSize+2);
                 obj.condition_lists{i}.Callback = @obj.condition_list_selection;
             end
             
-            obj.button_Save_Modules = uicontrol(obj.figure_handle, 'Style', 'pushbutton', 'String', 'Save analysis results with the selected name', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .1]);
+            obj.button_Save_Modules = uicontrol(obj.figure_handle, 'Style', 'pushbutton', 'String', 'Add analysis results to the database', 'FontSize', obj.FontSize+2, 'Units', 'normal', 'Position', [.05 .02 .9 .1]);
             obj.button_Save_Modules.Callback = @obj.button_Save_Modules_pushed; 
             
             obj.parent_obj.database = obj;

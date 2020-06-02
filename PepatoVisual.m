@@ -248,7 +248,7 @@ classdef PepatoVisual
                 obj.second_level_tab_group{i}.SelectedTab = obj.second_level_tab_handle(n_handle, i);
 
                 FigSpinalmaps(obj.second_level_tab_handle(n_handle, i), data.motorpools_activation{i}, data.motorpools_activation_avg{i}, ...
-                    maps_patterns.(conditions{i}), data.sacral{i}, data.lumbar{i});
+                    maps_patterns, conditions{i}, data.sacral{i}, data.lumbar{i});
             end
             
             obj.refresh_report(data);

@@ -312,7 +312,7 @@ classdef FigSynergies < handle
                     if ~ isempty(obj.clustering)
                         obj.draw_module_reference();
                     else
-                        msgbox('There is no reference data for modules.', 'Database error');
+                        msgbox('There is no reference data for modules it the database.', 'Database error');
                     end
             end
             

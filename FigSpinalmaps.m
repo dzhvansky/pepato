@@ -9,6 +9,7 @@ classdef FigSpinalmaps < handle
         motorpools_activation_avg;
         
         maps_patterns;
+        condition;
         sacral;
         lumbar;
         
@@ -18,11 +19,17 @@ classdef FigSpinalmaps < handle
     
     methods
         
-        function obj = FigSpinalmaps(handle_obj, motorpools_activation, motorpools_activation_avg, maps_patterns, sacral, lumbar)
+        function obj = FigSpinalmaps(handle_obj, motorpools_activation, motorpools_activation_avg, maps_patterns, condition, sacral, lumbar)
             obj.handle_obj = handle_obj;
             obj.motorpools_activation = motorpools_activation;
             obj.motorpools_activation_avg = motorpools_activation_avg;
-            obj.maps_patterns = maps_patterns;
+            
+            obj.condition = condition;
+            try
+                obj.maps_patterns = maps_patterns.(condition);
+            catch
+                obj.maps_patterns = [];
+            end
             obj.sacral = sacral;
             obj.lumbar = lumbar;
             
@@ -132,7 +139,7 @@ classdef FigSpinalmaps < handle
                 eval(sprintf('obj.draw_%s()', strrep(lower(selected), ' ', '_')));
                 obj.link_axes();
             else
-                msgbox('There is no reference data for spinal maps.', 'Database error');
+                msgbox(sprintf('There is no reference data for spinal maps in %s condition.', obj.condition), 'Database error');
             end
         end
         

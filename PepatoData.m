@@ -7,6 +7,8 @@ classdef PepatoData
         n_files;        
         filenames;
         
+        unused_labels;
+        
         output_data;
         
         emg_data_raw;
@@ -44,7 +46,6 @@ classdef PepatoData
         
         output_params;
         
-        logger;
         config;
                 
     end
@@ -53,7 +54,6 @@ classdef PepatoData
         
         function obj = init(obj, parent_obj, muscle_list)
             obj.parent_obj = parent_obj;
-            obj.logger = obj.parent_obj.logger;
             
             if nargin > 2 || ~isempty(muscle_list)
                 obj.muscle_list = muscle_list;
@@ -89,11 +89,12 @@ classdef PepatoData
         function obj = load_data(obj, FileDat, PathDat, body_side) 
             obj.config = obj.parent_obj.config.current_config;
             
-            obj = obj.files_(FileDat); 
+            obj = obj.files_(FileDat);
                         
             obj.emg_data_raw = cell(1, obj.n_files);
             obj.emg_timestamp = cell(1, obj.n_files);
             obj.emg_label = cell(1, obj.n_files);
+            obj.unused_labels = cell(1, obj.n_files);
             obj.emg_framerate = cell(1, obj.n_files);
             
             obj.colors = cell(1, obj.n_files);
@@ -102,13 +103,10 @@ classdef PepatoData
             
             for i = 1 : obj.n_files
                 [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
-                [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, warn_labels] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
-                
-                if ~ isempty(warn_labels)
-                    obj.logger.message('WARNING', sprintf('%s: labels [%s] are not in PEPATO muscle labels\nLabels must be among [%s]', FileDat{i}, warn_labels, strjoin(obj.muscle_list, ', ')));
-                end
+                [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, obj.unused_labels{i}] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
                 obj.colors{i} = obj.all_colors(muscle_index, :);
             end
+            
             obj.parent_obj.data = obj;
         end
         
@@ -199,6 +197,8 @@ classdef PepatoData
             obj.muscle_weightings = cell(1, obj.n_files);
             obj.nmf_r2 = cell(1, obj.n_files);
             
+            obj.module_info = cell(1, obj.n_files);
+            
             for i = 1 : obj.n_files
                 N_points = obj.config.n_points;
                 emg_enveloped_normalized = obj.emg_enveloped{i} ./ repelem(obj.emg_max{i}, size(obj.emg_enveloped{i}, 1), 1);
@@ -260,7 +260,6 @@ classdef PepatoData
         
         
         function obj = module_compare(obj, clustering)
-            obj.module_info = cell(1, obj.n_files);
             
             for i = 1 : obj.n_files
                 N_clusters = clustering.('N_clusters');
@@ -367,6 +366,7 @@ classdef PepatoData
             obj.motorpools_activation_avg = [];
             obj.sacral = [];
             obj.lumbar = [];
+            obj.module_info = [];
             
             obj.parent_obj.data = obj;
         end

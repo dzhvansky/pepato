@@ -3,7 +3,7 @@ classdef PepatoBasic
     properties
         data;
         config;
-        database;
+        database_path;
         
         input_folder;
         output_folder;
@@ -11,14 +11,11 @@ classdef PepatoBasic
         body_side;
         
         FileDat;
-        
-        logger = [];
-        FontSize = 8;
     end
     
     methods
         
-        function obj = init(obj, input_folder, output_folder, body_side, config_params, database_filename, muscle_list)
+        function obj = init(obj, input_folder, output_folder, body_side, config_params, database_path, muscle_list)
             in_ = what(input_folder);
             obj.input_folder = in_.path;
             out_ = what(output_folder);
@@ -26,12 +23,11 @@ classdef PepatoBasic
             
             obj.body_side = body_side;
             obj.config = [];
+            obj.database_path = database_path;
             
             config_ = cell2struct(config_params, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, 2);
             obj.config.('current_config') = config_;
             obj.data = PepatoData().init(obj, muscle_list);
-%             obj.database = DataBase().init(obj, database_filename);
-            
         end
         
         
@@ -45,15 +41,28 @@ classdef PepatoBasic
         end
         
         
-        function obj = pipeline(obj)
+        function obj = pipeline(obj, N_clusters, muscle_list)
             
             obj.data = obj.data.spectra_filtering(cell(1, obj.data.n_files));
             obj.data = obj.data.interpolated_envelope();
             obj.data = obj.data.envelope_max_normalization();
+            obj.data = obj.data.muscle_synergies();
+            try
+                cluster_name = ['clustering_' int2str(N_clusters)];
+                loaded = load(obj.database_path, cluster_name);
+                assert(isequal(muscle_list, loaded.(cluster_name).('muscle_list')));
+                obj.data = obj.data.module_compare(loaded.(cluster_name));
+            catch
+                warning('Modules comparison with reference is not available. Database error.');
+            end
             
-            obj.data = obj.data.muscle_synergies(); 
             obj.data = obj.data.spinal_maps();
-            
+            try
+                loaded = load(obj.database_path, 'maps_patterns');
+                obj.data = obj.data.maps_compare(loaded.('maps_patterns'));
+            catch
+                warning('Spinal maps comparison with reference is not available. Database error.');
+            end
         end
         
         
