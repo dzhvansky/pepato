@@ -49,6 +49,42 @@ classdef PepatoData
         config;
                 
     end
+    
+    
+    methods(Static)
+        
+        function emg_max = max_among_trials(emg_max, emg_label, all_labels, n_files)
+            
+            emg_max_all = zeros(size(all_labels));
+            
+            for j = 1 : size(all_labels, 2)
+                for i = 1 : n_files
+                    for k = 1 : size(emg_max{i}, 2)
+                        
+                        if strcmp(all_labels{j}, emg_label{i}{k})
+                            emg_max_all(j) = max([emg_max_all(j) emg_max{i}(k)]);
+                        end
+                        
+                    end
+                end
+            end
+            
+            for j = 1 : size(all_labels, 2)
+                for i = 1 : n_files
+                    for k = 1 : size(emg_max{i}, 2)
+                        
+                        if strcmp(all_labels{j}, emg_label{i}{k})
+                            emg_max{i}(k) = emg_max_all(j);
+                        end
+                        
+                    end
+                end
+            end
+            
+        end
+        
+    end
+    
 
     methods
         
@@ -86,7 +122,8 @@ classdef PepatoData
         end
         
         
-        function obj = load_data(obj, FileDat, PathDat, body_side) 
+        function obj = load_data(obj, FileDat, PathDat, body_side)
+            
             obj.config = obj.parent_obj.config.current_config;
             
             obj = obj.files_(FileDat);
@@ -182,7 +219,7 @@ classdef PepatoData
             for i = 1 : obj.n_files
                 obj.emg_max{i} = max(obj.emg_enveloped{i}, [], 1);
             end
-            obj.emg_max = emg_max_normalization(obj.emg_max, obj.emg_label, obj.muscle_list, obj.n_files);
+            obj.emg_max = obj.max_among_trials(obj.emg_max, obj.emg_label, obj.muscle_list, obj.n_files);
             
             obj.parent_obj.data = obj;
         end

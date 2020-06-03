@@ -33,11 +33,11 @@ classdef PepatoConfigGUI < handle
     methods(Static)
         
         function [data, cols, rows] = parse_table(table, column_width, n_rows_, n_cols_)
-            if exist('n_rows_', 'var')
-                table = table(n_rows_, :);
-            end
-            if exist('n_cols_', 'var')
+            if nargin == 4
                 table = table(:, n_cols_);
+            end
+            if nargin > 2
+                table = table(n_rows_, :);
             end
             
             data = table2cell(table);
@@ -358,11 +358,11 @@ classdef PepatoConfigGUI < handle
                 message = [message, '- Stop criterion for Number of synergies must be a string\n\n'];
             else
                 nnmf_stop_criterion = config.nnmf_stop_criterion{:};                
-                if ~ any(strcmp(nnmf_stop_criterion(1:2), {'N=', 'R=', 'BL'}))
-                    message = [message, '- Stop criterion for Number of synergies must start with "N=.." (N synergies), "R=.." (R square criteria) or "BL" (Best Linear Fit method)\n\n'];
+                if regexp(nnmf_stop_criterion, 'N=[\d]+|R2=|BLF') ~= 1
+                    message = [message, '- Stop criterion for Number of synergies must be from:\n "N=[integer <= max number of synergies]" (N synergies),\n "R2=[float < 1.]" (R-squared criteria) or "BLF" (Best Linear Fit method)\n\n'];
                 else
                     
-                    if strcmp(nnmf_stop_criterion(1:2), 'N=')
+                    if regexp(nnmf_stop_criterion, 'N=[\d]+') == 1
                         number_ = str2double(nnmf_stop_criterion(3:end));
                         if ~ isnumeric(number_) || isnan(number_)
                             message = [message, '- Number of synergies  must be numeric\n\n'];
@@ -376,13 +376,13 @@ classdef PepatoConfigGUI < handle
                             end                
                         end
                     
-                    elseif strcmp(nnmf_stop_criterion(1:2), 'R=')
-                        r_squared_ = str2double(nnmf_stop_criterion(3:end));
+                    elseif regexp(nnmf_stop_criterion, 'R2=') == 1
+                        r_squared_ = str2double(nnmf_stop_criterion(4:end));
                         if ~ isnumeric(r_squared_) || isnan(r_squared_)
-                            message = [message, '- R squared parameter must be numeric\n\n'];
+                            message = [message, '- R-squared parameter must be numeric\n\n'];
                         else                            
                             if (r_squared_ <= 0) || (r_squared_ >= 1)
-                                message = [message, '- R squared parameter must be greater then 0 and less than 1\n\n'];
+                                message = [message, '- R-squared parameter must be greater then 0 and less than 1\n\n'];
                             end                
                         end
                     end

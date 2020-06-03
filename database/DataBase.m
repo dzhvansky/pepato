@@ -52,6 +52,7 @@ classdef DataBase
     methods
         
         function obj = init(obj, parent_obj, database_file, N_clusters)
+            
             obj.parent_obj = parent_obj;
             obj.FontSize = obj.parent_obj.FontSize;
             obj.logger = obj.parent_obj.logger;

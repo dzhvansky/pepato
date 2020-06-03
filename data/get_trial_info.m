@@ -1,6 +1,6 @@
 function [subject, conditions] = get_trial_info(filenames)
 
-% filenames should be cell of filenames without extension
+% filenames should be cell array of filenames without extension
 N = length(filenames);
 conditions = cell(1, N);
 

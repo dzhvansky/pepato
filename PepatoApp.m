@@ -61,6 +61,7 @@ classdef PepatoApp < handle
     methods
         
         function obj = PepatoApp(FontSize, body_side, config_filename, database_filename, muscle_list)
+            
             if nargin < 5 || isempty(muscle_list)
                 muscle_list_to_print = {''};
             else
@@ -160,7 +161,7 @@ classdef PepatoApp < handle
 
                     obj.research_panel = uipanel(obj.control_panel, 'Title', 'Research settings', 'Units', 'normal', 'Position', [.05 .11 .9 .279], 'FontSize', obj.FontSize);
                     syn_criteria_panel = uipanel(obj.research_panel, 'Title', 'NMF stop criteria', 'Units', 'normal', 'Position', [.05 .2 .9 .8], 'FontSize', obj.FontSize);
-                    obj.criteria_list = uicontrol(syn_criteria_panel, 'Style', 'ListBox', 'String', {'BLF', 'N=2', 'N=3', 'N=4', 'N=5', 'N=6', 'R=0.90', 'R=0.95'}, 'Units', 'normal', 'Position', [.0 .0 1. 1.]);
+                    obj.criteria_list = uicontrol(syn_criteria_panel, 'Style', 'ListBox', 'String', {'BLF', 'N=2', 'N=3', 'N=4', 'N=5', 'N=6', 'R2=0.90', 'R2=0.95'}, 'Units', 'normal', 'Position', [.0 .0 1. 1.]);
                     obj.criteria_list.Callback = @obj.config_list_selection;
                     obj.button_UpdateDatabase = uicontrol(obj.research_panel, 'Style', 'pushbutton', 'String', 'Add to database', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .02 .9 .15]);
                     obj.button_UpdateDatabase.Callback = @obj.button_UpdateDatabase_pushed;
@@ -180,6 +181,7 @@ classdef PepatoApp < handle
         
 
         function EditConfig(obj, ~, ~)
+            
             if ~ isempty(obj.proc_pipeline)
                 warn_handler = warndlg('\color{blue} Current analysis may be interrupted if configuration changes.', 'Pipeline WARNING', struct('WindowStyle','modal', 'Interpreter','tex'));
                 drawnow;
@@ -212,7 +214,8 @@ classdef PepatoApp < handle
         end
         
         
-        function button_LoadRaw_pushed(obj, ~, ~)            
+        function button_LoadRaw_pushed(obj, ~, ~)
+            
             switch obj.load_type
                 case 'raw'
                     title = 'Load new Data'; question = 'Stop current analysis and upload new data?';

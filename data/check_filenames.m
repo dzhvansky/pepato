@@ -1,5 +1,5 @@
 function [FileDat, result] = check_filenames(FileDat, PathDat)
-
+%TODO add conditions check
 if ~strcmp(FileDat, '')
     if ischar(FileDat)
         FileDat = {FileDat};

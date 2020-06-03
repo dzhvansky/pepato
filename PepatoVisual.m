@@ -29,6 +29,7 @@ classdef PepatoVisual
                 
     end
     
+    
     methods        
         
         function obj = init(obj, parent_obj, visual_panel)

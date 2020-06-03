@@ -28,7 +28,7 @@ end
 
 columns = database.Properties.VariableNames;
 idx_weights = find_cell_contains(columns, '_weight');
-idx_patterns = find_cell_contains(columns, 'pattern_[\d]+', 'regexp');
+idx_patterns = find_cell_contains(columns, 'pattern_[\d]+', '-regexp');
 
 output.('muscle_list') = cellfun (@(x) x(1:end-7), columns(idx_weights), 'un', 0);
 

@@ -1,4 +1,5 @@
 function [psd_emg, f] = emg_spectra(emg_data, emg_framerate)
+
 n_emg = size(emg_data, 2);
 
 L = size(emg_data, 1);
@@ -12,4 +13,5 @@ for i = 1 : n_emg
     P1(2:end-1) = 2*P1(2:end-1); 
     psd_emg(:, i) = P1;
 end
+
 end
