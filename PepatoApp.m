@@ -41,9 +41,6 @@ classdef PepatoApp < handle
         button_ArtifactFiltering;
         
         button_Analysis;
-%         button_SynergyAnalysis;
-%         button_SpinalMapsAnalysis;        
-%         button_ReferenceCompare;
         
         button_SaveResults;
         button_SaveProcessed;       
@@ -123,12 +120,6 @@ classdef PepatoApp < handle
             obj.button_ArtifactFiltering.Callback = @obj.button_ArtifactFiltering_pushed;
 
             analysis_panel = uipanel(obj.control_panel, 'Title', 'Analysis','Units', 'normal', 'Position', [.05 .509 .9 .14], 'FontSize', obj.FontSize);
-%             obj.button_SynergyAnalysis = uicontrol(analysis_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Muscle Synergies','FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .68972 .9 .27586], 'Tag', 'button_syn_analysis');
-%             obj.button_SynergyAnalysis.Callback = @obj.button_SynergyAnalysis_pushed;
-%             obj.button_SpinalMapsAnalysis = uicontrol(analysis_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Spinal Maps','FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .37936 .9 .27586], 'Tag', 'button_spinal_maps');
-%             obj.button_SpinalMapsAnalysis.Callback = @obj.button_SpinalMapsAnalysis_pushed;
-%             obj.button_ReferenceCompare=uicontrol(analysis_panel, 'Style', 'pushbutton', 'Enable', 'off','String', 'Compare with reference', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .069 .9 .27586], 'Tag', 'button_compare');
-%             obj.button_ReferenceCompare.Callback=@obj.button_ReferenceCompare_pushed;
             obj.button_Analysis=uicontrol(analysis_panel, 'Style', 'pushbutton', 'Enable', 'off','String', 'Analysis', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .069 .9 .8966], 'Tag', 'button_analysis');
             obj.button_Analysis.Callback=@obj.button_Analysis_pushed;
 

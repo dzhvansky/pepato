@@ -28,7 +28,7 @@ subject_N_gaitEvents_R_test_condition.yml
 ```
 >>> pkg load signal
 >>> pkg load statistics
->>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'database_octave.mat', []);
+>>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'db/db_8muscles.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
 - Set input_folder, output_folder, body_side, config parameters, database filename and list of muscles (optional)
 - Format of path folder: path from current folder or full path
@@ -39,6 +39,6 @@ subject_N_gaitEvents_R_test_condition.yml
 (full functionality, advanced GUI)
 ### Run
 ```
->>> PEPATO(8, 'left', 'default_config.mat', 'test_database.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
+>>> PEPATO(8, 'left', 'cfg/initial_cfg.mat', 'db/db_8muscles.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
 - Set GUI font size, body side, name of config file, name of database file and muscle list (optional)
