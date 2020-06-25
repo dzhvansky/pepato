@@ -116,6 +116,7 @@ classdef DataBase
             if nargin < 2
                 init_flag = 'append';
             end
+            
             module_database = obj.module_database;
             maps_database = obj.maps_database;
             switch init_flag
@@ -362,9 +363,9 @@ classdef DataBase
                     obj.logger.message('WARNING', sprintf('%s analysis data indexed "%s" already exists in modules database. Nothing to add.', base_name, to_drop));
                     rows_to_add = {};
                     
-                    warn_handler = warndlg('\color{blue} Nothing to add to the database. All data with the specified index is already in the database.', 'Database WARNING', struct('WindowStyle','modal', 'Interpreter','tex'));
-                    drawnow;
-                    waitfor(warn_handler);
+                    %warn_handler = warndlg('\color{blue} Nothing to add to the database. All data with the specified index is already in the database.', 'Database WARNING', struct('WindowStyle','modal', 'Interpreter','tex'));
+                    %drawnow;
+                    %waitfor(warn_handler);
                 end
             else
                 idx_to_add = rows_to_add{:, index_columns};

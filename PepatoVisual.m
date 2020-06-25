@@ -217,8 +217,15 @@ classdef PepatoVisual
         
         function obj = draw_muscle_synergies(obj, data, clustering)
             n_handle = 6;
+            [~, conditions] = get_trial_info(data.filenames);
             
             for i = 1 : obj.n_files
+                if strcmp(data.clustering_mode, 'unique')
+                    cluster_condition = conditions{i};
+                elseif strcmp(data.clustering_mode, 'common')
+                    cluster_condition = 'all_conditions';
+                end
+                
                 delete(obj.second_level_tab_handle(n_handle, i));
                 obj.second_level_tab_handle(n_handle, i) = uitab(obj.second_level_tab_group{i}, 'Title', obj.second_level_tab_names{n_handle}); 
 
@@ -227,7 +234,7 @@ classdef PepatoVisual
 
                 FigSynergies(obj.second_level_tab_handle(n_handle, i), data.emg_patterns{i}, data.emg_patterns_sd{i}, ...
                     data.basic_patterns{i}, data.basic_patterns_sd{i}, data.muscle_weightings{i}, data.nmf_r2{i}, ...
-                    data.emg_label{i}, data.all_colors, clustering, data.module_info{i});      
+                    data.emg_label{i}, data.all_colors, clustering, cluster_condition, data.module_info{i});      
             end            
             
             obj.refresh_report(data);

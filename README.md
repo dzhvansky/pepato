@@ -18,17 +18,10 @@ subject_N_gaitEvents_R_test_condition.yml
 
 ## Octave version >= 5.2.0
 (basic functionality)
-### Installation required
-```
->>> pkg install -forge signal
->>> pkg install -forge statistics
-```
-
+### Packages required: signal >= 1.4.1 statistics >= 1.4.1
 ### Run
 ```
->>> pkg load signal
->>> pkg load statistics
->>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'db/db_8muscles.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
+>>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'db/db_healthy_adults_8m.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
 - Set input_folder, output_folder, body_side, config parameters, database filename and list of muscles (optional)
 - Format of path folder: path from current folder or full path
@@ -39,6 +32,6 @@ subject_N_gaitEvents_R_test_condition.yml
 (full functionality, advanced GUI)
 ### Run
 ```
->>> PEPATO(8, 'left', 'cfg/initial_cfg.mat', 'db/db_8muscles.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
+>>> PEPATO(8, 'left', 'cfg/initial_cfg.mat', 'db/db_healthy_adults_8m', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
 - Set GUI font size, body side, name of config file, name of database file and muscle list (optional)

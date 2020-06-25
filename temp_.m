@@ -1,5 +1,5 @@
 
-loaded = load('db_healthy_adults_8m.mat');
+loaded = load('db/db_healthy_adults_8m.mat');
 module_database = loaded.module_database;
 
 % labels = {'GlMa', 'TeFa', 'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'GaLa', 'Sol'}; %, 'PeLo'
@@ -62,7 +62,7 @@ mask = mask & (dist < threshold);
 disp(size(dist(mask), 1));
 disp(size(dist(~mask), 1));
 
-% cluster_idx(~mask) = 0;
+cluster_idx(~mask) = 0;
 
 pattern_mean = zeros(5, 200);
 pattern_sd = zeros(5, 200);
@@ -124,4 +124,13 @@ Y_cos = tsne([cluster_center; features],'Algorithm','exact','Distance','cosine')
 gscatter(Y_cos(N_clusers+1:end, 1), Y_cos(N_clusers+1:end, 2), cluster_idx); hold on;
 plot(Y_cos(1:N_clusers, 1), Y_cos(1:N_clusers, 2), 'kx');
 
+
+figure(46);clf;
+% Y_cos = tsne(features, 'Algorithm', 'exact', 'Distance', 'cosine');
+% gscatter(Y_cos(:,1), Y_cos(:,2), cluster_idx);
+
+Y_cos = tsne([cluster_center; features],'Algorithm','exact','Distance','cosine');
+gscatter(Y_cos(N_clusers+1:end, 1), Y_cos(N_clusers+1:end, 2), ...
+    cellfun(@(x) add_backslash(x, '_'), module_database{:, 'condition'}, 'un', 0)); hold on;
+plot(Y_cos(1:N_clusers, 1), Y_cos(1:N_clusers, 2), 'kx');
 

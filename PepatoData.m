@@ -34,6 +34,8 @@ classdef PepatoData
         motorpools_activation_avg;
         sacral;
         lumbar;
+        
+        clustering_mode;
         module_info;
         
         colors;
@@ -117,6 +119,8 @@ classdef PepatoData
             
             obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa', 'muscle_module_similarity', ...
                 'motor_pool_max_activation', 'motor_pool_fwhm', 'motor_pool_coact_index', 'motor_pool_similarity'};
+            
+            obj.clustering_mode = 'unique'; % options: 'unique', 'common' for condition dependent and independent clustering, respectively
             
             obj.parent_obj.data = obj;
         end
@@ -297,12 +301,23 @@ classdef PepatoData
         
         
         function obj = module_compare(obj, clustering)
+            [~, conditions] = get_trial_info(obj.filenames);
             
             for i = 1 : obj.n_files
-                N_clusters = clustering.('N_clusters');
-                cluster_center = clustering.('cluster_center');
+                if strcmp(obj.clustering_mode, 'unique')
+                    cluster_condition = conditions{i};
+                elseif strcmp(data.clustering_mode, 'common')
+                    cluster_condition = 'all_conditions';
+                end
                 
-                [features, ~, ~, ~] = get_cluster_features(obj.muscle_weightings{i}', obj.basic_patterns{i}', clustering.('scaler_mean'), clustering.('scaler_std'));
+                N_clusters = clustering.('N_clusters');
+                mean_threshold = clustering.('mean_threshold');
+                max_threshold = clustering.('max_threshold');
+                cluster_center = clustering.('data').(cluster_condition).('cluster_center');
+                scaler_mean = clustering.('data').(cluster_condition).('scaler_mean');
+                scaler_std = clustering.('data').(cluster_condition).('scaler_std');
+                
+                [features, ~, ~, ~] = get_cluster_features(obj.muscle_weightings{i}', obj.basic_patterns{i}', scaler_mean, scaler_std);
                 n_rows = size(features, 1);
                 n_features = size(features, 2);
                 
@@ -311,7 +326,7 @@ classdef PepatoData
                 for j = 1:n_rows
                     [nearest_cluster_dist(j), cluster_idx(j)] = min(sqrt(sum((cluster_center - repmat(features(j, :), N_clusters, 1)) .^ 2, 2) / n_features));
                 end
-                include_mask = get_cluster_mask(features, cluster_idx, cluster_center, clustering.('mean_threshold'), clustering.('max_threshold'));
+                include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold);
                 
                 obj.output_data(i).data.('muscle_module_similarity') = nearest_cluster_dist';
                 

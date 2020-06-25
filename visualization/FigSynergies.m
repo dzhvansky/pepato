@@ -11,6 +11,7 @@ classdef FigSynergies < handle
         w_normalized;
         nmf_r2;
         clustering;
+        cluster_condition;
         module_info;
         
         colors;
@@ -26,7 +27,7 @@ classdef FigSynergies < handle
     
     methods
         
-        function obj = FigSynergies(handle_obj,  emg_patterns, emg_patterns_sd, c_normalized_mean, c_normalized_sd, w_normalized, nmf_r2, emg_label, all_colors, clustering, module_info)
+        function obj = FigSynergies(handle_obj,  emg_patterns, emg_patterns_sd, c_normalized_mean, c_normalized_sd, w_normalized, nmf_r2, emg_label, all_colors, clustering, cluster_condition, module_info)
             obj.handle_obj = handle_obj;
             obj.colors = all_colors;
             obj.emg_label = emg_label;
@@ -39,6 +40,7 @@ classdef FigSynergies < handle
             obj.nmf_r2 = nmf_r2;
             
             obj.clustering = clustering;
+            obj.cluster_condition = cluster_condition;
             obj.module_info = module_info;
             
             obj.n_synergies = size(obj.c_normalized_mean, 2);
@@ -200,10 +202,10 @@ classdef FigSynergies < handle
             
             N_clusters = obj.clustering.('N_clusters');
             muscle_list = obj.clustering.('muscle_list');
-            weight_mean = obj.clustering.('weight_mean');
-            weight_sd = obj.clustering.('weight_sd');
-            pattern_mean = obj.clustering.('pattern_mean');
-            pattern_sd = obj.clustering.('pattern_sd');
+            weight_mean = obj.clustering.('data').(obj.cluster_condition).('weight_mean');
+            weight_sd = obj.clustering.('data').(obj.cluster_condition).('weight_sd');
+            pattern_mean = obj.clustering.('data').(obj.cluster_condition).('pattern_mean');
+            pattern_sd = obj.clustering.('data').(obj.cluster_condition).('pattern_sd');
             
             n_muscles = size(weight_mean, 2);
             n_points_ = size(pattern_mean, 2);
@@ -227,6 +229,9 @@ classdef FigSynergies < handle
                 end
                 xlim([1 100]);
                 ylim([0 n_muscles/n_points_]);
+                if i == 1
+                    title(sprintf('Reference modules are obtained for "%s"', add_backslash(obj.cluster_condition, '_')));
+                end
                 
                 subplot('Position', [.55, .08+(N_clusters-i)*.83/N_clusters, .35, .75/N_clusters]);
                 h = bar(1:n_muscles, weight_mean(i, :), 'FaceColor', [.8 .8 .8]); hold on;
@@ -247,7 +252,6 @@ classdef FigSynergies < handle
                 ylabel(sprintf(['cluster #' num2str(i)]));
                 ylim([0 1]); 
             end
-            
             
             norm_patterns = (obj.c_normalized_mean ./ repmat(sum(obj.c_normalized_mean, 1), obj.n_points, 1))';
             norm_patterns_sd = (obj.c_normalized_sd./ repmat(sum(obj.c_normalized_mean, 1), obj.n_points, 1))';

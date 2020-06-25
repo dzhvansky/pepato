@@ -8,15 +8,6 @@ elseif nargin < 4
     max_threshold = 2.0;
 end
 
-output_params = {'N_clusters', 'mean_threshold', 'max_threshold', 'muscle_list', 'cluster_idx', 'include_mask', ...
-    'cluster_center', 'scaler_mean', 'scaler_std', 'weight_mean', 'weight_sd', 'pattern_mean', 'pattern_sd'};
-output = cell2struct(cell(1, length(output_params)), output_params, 2);
-
-output.('N_clusters') = N_clusters;
-output.('mean_threshold') = mean_threshold;
-output.('max_threshold') = max_threshold;
-
-
 % load table if the "database" parameter is a path to the database
 if isa(database, 'char')
     db_path = database;
@@ -29,45 +20,73 @@ end
 columns = database.Properties.VariableNames;
 idx_weights = find_cell_contains(columns, '_weight');
 idx_patterns = find_cell_contains(columns, 'pattern_[\d]+', '-regexp');
+n_muscles = length(idx_weights);
+n_points = length(idx_patterns);
 
+[~, unique_idx] = unique(database.('condition'));
+conditions = database.('condition')(unique_idx)';
+conditions = [{'all_conditions'}, conditions];
+n_conditions = length(conditions);
+
+
+output_params = {'cluster_center', 'scaler_mean', 'scaler_std', 'weight_mean', 'weight_sd', 'pattern_mean', 'pattern_sd'};
+% excluded params: 'cluster_idx', 'include_mask' 
+struct_1_lvl = cell2struct(cell(1, length(output_params)), output_params, 2);
+
+cell_conditions = cell(1, n_conditions);
+[cell_conditions{:}] = deal(struct_1_lvl);
+
+output = cell2struct(cell(1, 5), {'N_clusters', 'mean_threshold', 'max_threshold', 'muscle_list', 'data'}, 2);
+
+output.('N_clusters') = N_clusters;
+output.('mean_threshold') = mean_threshold;
+output.('max_threshold') = max_threshold;
 output.('muscle_list') = cellfun (@(x) x(1:end-7), columns(idx_weights), 'un', 0);
-
-weights = database{:, idx_weights}; 
-patterns = database{:, idx_patterns};
-n_muscles = size(weights, 2);
-n_points = size(patterns, 2);
-
-[features, norm_patterns, output.('scaler_mean'), output.('scaler_std')] = get_cluster_features(weights, patterns);
+output.('data') = cell2struct(cell_conditions, conditions, 2);
 
 
-% k-means
-[cluster_idx, cluster_center] = kmeans(features, N_clusters, 'Replicates', 100);
-% cluster_center_orig = cluster_center .* repmat(scaler_std, N_clusters, 1) + repmat(scaler_mean, N_clusters, 1);
-include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold); 
-
-output.('cluster_idx') = cluster_idx;
-output.('cluster_center') = cluster_center;
-output.('include_mask') = include_mask;
-
-weight_mean = zeros(N_clusters, n_muscles);
-weight_sd = zeros(N_clusters, n_muscles);
-pattern_mean = zeros(N_clusters, n_points);
-pattern_sd = zeros(N_clusters, n_points);
-
-for i = 1:N_clusters
-    cluster_mask = (include_mask) & (cluster_idx == i);
+for j = 1:n_conditions
     
-    weight_mean(i, :) = mean(weights(cluster_mask, :), 1);
-    weight_sd(i, :) = std(weights(cluster_mask, :), 1);
-    pattern_mean(i, :) = mean(norm_patterns(cluster_mask, :), 1);
-    pattern_sd(i, :) = std(norm_patterns(cluster_mask, :), 1);
+    condition = conditions{j};
+    if strcmp(condition, 'all_conditions')
+        row_idx = 1:size(database, 1);
+    else
+        row_idx = cell2mat(cellfun(@(x) strcmp(x, condition), database.('condition'), 'un', 0));
+    end
+    
+    weights = database{row_idx, idx_weights}; 
+    patterns = database{row_idx, idx_patterns};
+    
+    [features, norm_patterns, output.('data').(condition).('scaler_mean'), ...
+        output.('data').(condition).('scaler_std')] = get_cluster_features(weights, patterns);
+
+    % k-means
+    [cluster_idx, cluster_center] = kmeans(features, N_clusters, 'Replicates', 100);
+    % cluster_center_orig = cluster_center .* repmat(scaler_std, N_clusters, 1) + repmat(scaler_mean, N_clusters, 1);
+    include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold); 
+
+    output.('data').(condition).('cluster_center') = cluster_center;
+
+    weight_mean = zeros(N_clusters, n_muscles);
+    weight_sd = zeros(N_clusters, n_muscles);
+    pattern_mean = zeros(N_clusters, n_points);
+    pattern_sd = zeros(N_clusters, n_points);
+
+    for i = 1:N_clusters
+        cluster_mask = (include_mask) & (cluster_idx == i);
+
+        weight_mean(i, :) = mean(weights(cluster_mask, :), 1);
+        weight_sd(i, :) = std(weights(cluster_mask, :), 1);
+        pattern_mean(i, :) = mean(norm_patterns(cluster_mask, :), 1);
+        pattern_sd(i, :) = std(norm_patterns(cluster_mask, :), 1);
+    end
+
+    output.('data').(condition).('weight_mean') = weight_mean;
+    output.('data').(condition).('weight_sd') = weight_sd;
+    output.('data').(condition).('pattern_mean') = pattern_mean;
+    output.('data').(condition).('pattern_sd') = pattern_sd;
+    
 end
-
-output.('weight_mean') = weight_mean;
-output.('weight_sd') = weight_sd;
-output.('pattern_mean') = pattern_mean;
-output.('pattern_sd') = pattern_sd;
-
 
 % save output structure if the path is known
 if isa(db_path, 'char')

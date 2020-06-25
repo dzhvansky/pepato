@@ -1,3 +1,7 @@
 test_data/
+.pepatopath
 *.mat
 *.asv
+
+!cfg/initial_cfg.mat
+!db/db_healthy_adults_8m.mat
