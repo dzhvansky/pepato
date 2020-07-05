@@ -103,8 +103,8 @@ classdef FigSpinalmaps < handle
             ref_points = length(sacral_mean);
             
             subplot('Position', [.15 .1 .7, .35]);
-            plot(linspace(1, 100, obj.n_points), obj.sacral, 'Color', 'g', 'LineWidth', 1.5, 'Tag', 'mp_sacral', 'DisplayName', 'Sacral activation'); hold on;
-            plot(linspace(1, 100, obj.n_points), obj.lumbar, 'Color', 'r', 'LineWidth', 1.5, 'Tag', 'mp_lumbar', 'DisplayName', 'Lumbar activation');
+            plot(linspace(1, 100, obj.n_points), obj.sacral, 'Color', 'g', 'LineWidth', 1.5, 'Tag', 'mp_sacral', 'DisplayName', 'Sacral activation (S1 + S2)'); hold on;
+            plot(linspace(1, 100, obj.n_points), obj.lumbar, 'Color', 'r', 'LineWidth', 1.5, 'Tag', 'mp_lumbar', 'DisplayName', 'Lumbar activation (L2 + L3)');
             plot(linspace(1, 100, ref_points), sacral_mean, 'Color', [0.3835 0.7095 0.5605], 'Tag', 'mp_ref_sacral', 'DisplayName', 'Reference pattern sacral');
             plot(linspace(1, 100, ref_points), lumbar_mean, 'Color', [0.8895 0.5095 0.1115], 'Tag', 'mp_ref_lumbar', 'DisplayName', 'Reference pattern lumbar');
             h = fill([linspace(1, 100, ref_points) fliplr(linspace(1, 100, ref_points))], ...

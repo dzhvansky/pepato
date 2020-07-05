@@ -1,11 +1,15 @@
-function output = module_clustering(database, N_clusters, mean_threshold, max_threshold)
+function output = module_clustering(database, N_clusters, mean_threshold, max_threshold, ordering)
 % the "database" parameter can be both a string (path to the PEPATO database) and a table
 
 if nargin < 3
     mean_threshold = 0.8;
     max_threshold = 2.0;
+    ordering = [];
 elseif nargin < 4
     max_threshold = 2.0;
+    ordering = [];
+elseif nargin < 5
+    ordering = [];
 end
 
 % load table if the "database" parameter is a path to the database
@@ -16,6 +20,12 @@ if isa(database, 'char')
 else
     db_path = [];
 end
+
+if ~isempty(ordering)
+    loaded = load(ordering);
+    ordered_modules = loaded.ordered_modules;
+end
+
 
 columns = database.Properties.VariableNames;
 idx_weights = find_cell_contains(columns, '_weight');
@@ -62,9 +72,11 @@ for j = 1:n_conditions
 
     % k-means
     [cluster_idx, cluster_center] = kmeans(features, N_clusters, 'Replicates', 100);
+    if ~isempty(ordering)
+        [cluster_idx, cluster_center] = get_cluster_order(cluster_idx, cluster_center, ordered_modules);
+    end
     % cluster_center_orig = cluster_center .* repmat(scaler_std, N_clusters, 1) + repmat(scaler_mean, N_clusters, 1);
     include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold); 
-
     output.('data').(condition).('cluster_center') = cluster_center;
 
     weight_mean = zeros(N_clusters, n_muscles);

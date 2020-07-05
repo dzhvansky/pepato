@@ -40,7 +40,7 @@ addpath_flag = sum(onPath) < length(onPath);
 if addpath_flag
     try
         fileID = fopen(fullfile(pepato_path, '.pepatopath'), 'r');
-        path_list = textscan(fileID, '%s');
+        path_list = textscan(fileID, '%s', 'Delimiter', '\n');
         fclose(fileID);
         cellfun(@(x) addpath(x), path_list{1}', 'un', 0);
         

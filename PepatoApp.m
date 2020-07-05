@@ -114,7 +114,7 @@ classdef PepatoApp < handle
             obj.button_CropData.Callback = @obj.button_CropData_pushed;
             obj.button_MuscleSelection = uicontrol(process_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Muscles selection', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .5263 .9 .2105], 'Tag', 'button_muscle_sel');
             obj.button_MuscleSelection.Callback = @obj.button_MuscleSelection_pushed;
-            obj.button_SpectraFiltering = uicontrol(process_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Spectra filtering', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .2894 .9 .2105], 'Tag', 'button_spectra_filt');
+            obj.button_SpectraFiltering = uicontrol(process_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Spectral filtering', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .2894 .9 .2105], 'Tag', 'button_spectra_filt');
             obj.button_SpectraFiltering.Callback = @obj.button_SpectraFiltering_pushed;
             obj.button_ArtifactFiltering = uicontrol(process_panel,'Style','pushbutton', 'Enable', 'off', 'String', 'Artifact filtering', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .0526 .9 .2105], 'Tag', 'button_artifact_filt');
             obj.button_ArtifactFiltering.Callback = @obj.button_ArtifactFiltering_pushed;
@@ -217,7 +217,9 @@ classdef PepatoApp < handle
                 
             end
             
-            obj.restart_pipeline = questdlg(question, title, 'Yes', 'No', obj.yes_no_question_opts);
+            if ~isempty(obj.FileDat) && ~sum(strcmp(obj.FileDat, ''))
+                obj.restart_pipeline = questdlg(question, title, 'Yes', 'No', obj.yes_no_question_opts);
+            end
             switch obj.restart_pipeline
                 case 'Yes'
 

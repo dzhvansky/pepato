@@ -218,7 +218,7 @@ classdef FigSynergies < handle
                     [max(pattern_mean(i, :) - pattern_sd(i, :), zeros(1, n_points_)) fliplr(pattern_mean(i, :) + pattern_sd(i, :))], ...
                     [.8 .8 .8], 'EdgeColor', 'None', 'FaceAlpha', .5);
                 h.Annotation.LegendInformation.IconDisplayStyle = 'off';
-                ylabel(sprintf(['cluster #' num2str(i)]));
+                ylabel(sprintf(['module #' num2str(i)]));
                 if i < N_clusters
                     set(gca,'XTick',[]);
                 else
@@ -249,7 +249,7 @@ classdef FigSynergies < handle
                 end
                 set(gca, 'YTick', [0 0.5 1]);
                 set(gca, 'YTickLabel', {'0' '50%' '100%'});
-                ylabel(sprintf(['cluster #' num2str(i)]));
+                ylabel(sprintf(['module #' num2str(i)]));
                 ylim([0 1]); 
             end
             
