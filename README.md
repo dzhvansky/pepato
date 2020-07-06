@@ -4,15 +4,15 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 
 ## Data format
 
-[4.5. Electromyography file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#45-electromyography-file)
+[4.5. Electromyography file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#electromyography-file)
 
-[4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#49-gait-events-file)
+[4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#gait-events-file)
 
 - Electromiography and Gait events files should be named the same
 - File name format:
 ```
-subject_N_emg_R_test_condition.csv
-subject_N_gaitEvents_R_test_condition.yml
+subject_N_run_R_testcondition_emg.csv
+subject_N_run_R_testcondition_gaitEvents.yaml
 ```
 
 

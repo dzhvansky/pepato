@@ -1,8 +1,8 @@
-# test_data/
+test_data/
 .pepatopath
 *.mat
 *.asv
 
-!cfg/initial_cfg.mat
-!db/module_ordering_8m_4.mat
-!db/db_healthy_adults_8m.mat
+# !cfg/initial_cfg.mat
+# !db/module_ordering_8m_4.mat
+# !db/db_healthy_adults_8m.mat
