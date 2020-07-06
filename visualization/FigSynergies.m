@@ -225,7 +225,7 @@ classdef FigSynergies < handle
                     set(gca, 'XTick', 0:20:100);
                     set(gca, 'XTickLabel', 0:20:100);                  
                     xlabel('% of movement cycle'); 
-                    ylabel(sprintf([ '[relative units]\n' 'cluster #' num2str(i)])); 
+                    ylabel(sprintf([ '[relative units]\n' 'module #' num2str(i)])); 
                 end
                 xlim([1 100]);
                 ylim([0 n_muscles/n_points_]);

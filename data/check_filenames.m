@@ -1,5 +1,5 @@
-function [FileDat, result] = check_filenames(FileDat, PathDat)
-%TODO add conditions check
+function [FileDat, result] = check_filenames(FileDat, PathDat, condition_list)
+
 if ~strcmp(FileDat, '')
     if ischar(FileDat)
         FileDat = {FileDat};
@@ -7,8 +7,12 @@ if ~strcmp(FileDat, '')
     
     N = length(FileDat);
     
-    subject = cell(1, N);
-    trial = cell(1, N);
+    try
+        [~, trials, conditions] = get_trial_info(FileDat);
+        result = sum(ismember(conditions, condition_list)) == N;
+    catch
+        result = false;
+    end
     
     for i = 1:N
         
@@ -17,24 +21,23 @@ if ~strcmp(FileDat, '')
         
         % check filename parts
         try
-            subject{1, i} = splitted{2};
-            trial{1, i} = splitted{4};
-            result = strcmp(splitted{1}, 'subject') && strcmp(splitted{3}, 'emg') && ...
-                (length(subject{1, i})==4) && (length(trial{1, i})==3);   
+            result = result && strcmp(splitted{1}, 'subject') && strcmp(splitted{3}, 'run');
+                % && (length(subject{1, i})==4) && (length(trial{1, i})==3);   
         catch
             result = false;
         end
         
-        splitted{3} = 'gaitEvents';
-        yaml_file_name = strjoin(splitted, '_');
-        yaml_file_name(end-2:end) = 'yml';
-        
         % check corresponding yaml file exists
+        splitted{end} = 'gaitEvents.yaml';
+        yaml_file_name = strjoin(splitted, '_');
         result = result && (exist(fullfile(PathDat, yaml_file_name), 'file') == 2);
     end
     
-    % check all conditions are unique for the only one subject
-    result = result && (length(unique(subject))==1) && (length(unique(trial))==N);
+    % check all conditions are unique for each run
+    for trial = unique(trials)
+        trial_idx = strcmp(trials, trial);
+        result = result && (length(unique(conditions(trial_idx))) == sum(trial_idx));
+    end 
     
 else
     result = false;

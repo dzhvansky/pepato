@@ -4,6 +4,7 @@ classdef PepatoApp < handle
         
         file_extension = 'csv';
         body_side; 
+        condition_list;
         
         data;
         visual;
@@ -66,6 +67,7 @@ classdef PepatoApp < handle
             end
             
             obj.body_side = body_side;
+            obj.condition_list = {'speed2kmh', 'speed4kmh', 'speed6kmh'};
             
             obj.figure_handle = figure('name', 'PEPATO application', 'NumberTitle', 'off', 'Units', 'normal', 'OuterPosition', [0 0 1 1]); clf;
             obj.figure_handle.Units = 'characters';
@@ -98,7 +100,7 @@ classdef PepatoApp < handle
             img = imread('eurobench.png'); 
             pax = axes('Parent', obj.control_panel, 'Position', [.05 .0 .9 .1]);
             imagesc(img, 'Parent', pax); 
-            set(pax,'xtick',[],'ytick',[]);            
+            set(pax,'xtick',[],'ytick',[]);
             
             
             load_panel = uipanel(obj.control_panel, 'Title', 'Loading', 'Units', 'normal', 'Position', [.05 .85 .9 .14], 'FontSize', obj.FontSize); 
@@ -129,7 +131,6 @@ classdef PepatoApp < handle
             obj.button_SaveProcessed = uicontrol(save_panel, 'Style', 'pushbutton', 'Enable', 'off', 'String', 'Save processed data', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .1 .9 .4], 'Tag', 'button_save');
             obj.button_SaveProcessed.Callback = @obj.button_SaveProcessed_pushed; 
                        
-            
             obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {20, 400, 200, 8, 10, 'N=4'});
             obj.data = PepatoData().init(obj, muscle_list);
             obj.visual = PepatoVisual().init(obj, obj.visual_panel);
@@ -244,12 +245,18 @@ classdef PepatoApp < handle
 
                         switch obj.load_type
                             case 'raw'
-                                [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.PathDat);
-                                if checked_
+                                [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.PathDat, obj.condition_list);
+                                [subjects, ~, ~] = get_trial_info(obj.FileDat);
+                                if checked_ && (length(unique(subjects)) == 1)
                                     obj.logger.message('INFO', ['Files ' sprintf('%s, ', obj.FileDat{:}) 'uploaded from the folder ' obj.PathDat]);
                                 else
                                     obj.FileDat = '';
-                                    obj.logger.message('ERROR', 'Reproduce is possible only from PEPATO generated results file');
+                                    if ~checked_
+                                        obj.logger.message('ERROR', 'CSV or YAML file names do not match PEPATO requirements, please see README.md file.');
+                                    end
+                                    if length(unique(subjects)) > 1
+                                        obj.logger.message('ERROR', 'More than one subject selected, please select only one.');
+                                    end
                                 end
                                 
                             case 'preproc'

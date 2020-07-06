@@ -117,7 +117,7 @@ classdef PepatoData
                     0.9290    0.6940    0.1250
                     ];
             
-            obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa', 'muscle_module_similarity', ...
+            obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa', 'muscle_module_similarity', 'matching_standard_reference_index', ...
                 'motor_pool_max_activation', 'motor_pool_fwhm', 'motor_pool_coact_index', 'motor_pool_similarity'};
             
             obj.clustering_mode = 'unique'; % options: 'unique', 'common' for condition dependent and independent clustering, respectively
@@ -258,6 +258,7 @@ classdef PepatoData
                 obj.output_data(i).data.('pattern_fwhm') = mean(fwhm, 1);
                 obj.output_data(i).data.('pattern_coa') = mean(coa, 1);
                 obj.output_data(i).data.('muscle_module_similarity') = [];
+                obj.output_data(i).data.('matching_standard_reference_index') = [];
             end
             
             obj.parent_obj.data = obj;
@@ -301,7 +302,7 @@ classdef PepatoData
         
         
         function obj = module_compare(obj, clustering)
-            [~, conditions] = get_trial_info(obj.filenames);
+            [~, ~, conditions] = get_trial_info(obj.filenames);
             
             for i = 1 : obj.n_files
                 if strcmp(obj.clustering_mode, 'unique')
@@ -323,16 +324,23 @@ classdef PepatoData
                 
                 cluster_idx = zeros(n_rows, 1);
                 nearest_cluster_dist = zeros(n_rows, 1);
+                muscle_module_similarity = zeros(n_rows, N_clusters);
                 for j = 1:n_rows
-                    [nearest_cluster_dist(j), cluster_idx(j)] = min(sqrt(sum((cluster_center - repmat(features(j, :), N_clusters, 1)) .^ 2, 2) / n_features));
+                    muscle_module_similarity(j, :) = sqrt(sum((cluster_center - repmat(features(j, :), N_clusters, 1)) .^ 2, 2) / n_features);
+                    [nearest_cluster_dist(j), cluster_idx(j)] = min(muscle_module_similarity(j, :));
+                    
                 end
                 include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold);
                 
-                obj.output_data(i).data.('muscle_module_similarity') = nearest_cluster_dist';
+                matching_standard_reference_index = cluster_idx';
+                matching_standard_reference_index(~include_mask') = NaN;
                 
                 module_info_ = cell2struct({include_mask', cluster_idx', nearest_cluster_dist'}, ...
                     {'is_clustered', 'n_cluster', 'nearest_cluster_dist'}, 2);
                 obj.module_info{i} = module_info_;
+                
+                obj.output_data(i).data.('muscle_module_similarity') = muscle_module_similarity;
+                obj.output_data(i).data.('matching_standard_reference_index') = matching_standard_reference_index;
             end
             
             obj.parent_obj.data = obj;
@@ -340,7 +348,7 @@ classdef PepatoData
         
         
         function obj = maps_compare(obj, maps_patterns)
-            [~, conditions] = get_trial_info(obj.filenames);
+            [~, ~, conditions] = get_trial_info(obj.filenames);
             
             for i = 1 : obj.n_files
                 sacral_mean = maps_patterns.(conditions{i}).('sacral').('mean_val');
@@ -363,30 +371,67 @@ classdef PepatoData
         end
         
         
-        function obj = write_output_yaml(obj, file_name)
-            data_types = cell2struct({'value', 'value', 'vector', 'vector', 'vector', 'vector', 'vector', 'value', 'vector'}, obj.output_params, 2);
+        function obj = write_output_yaml(obj, output_folder, condition_list)
+            data_types = cell2struct({'vector', 'vector', 'vector of vector', 'vector of vector', 'vector of matricies', 'vector of vector', ...
+                'vector of vector', 'vector of vector', 'vector', 'vector of vector'}, ...
+                obj.output_params, 2);
             
-            fout = fopen(file_name, 'w');
+            [subjects, trials, conditions] = get_trial_info(obj.filenames);
+            assert(length(unique(subjects))==1)
+            subject = subjects{1};
             
-            for i = 1 : obj.n_files
-                fprintf(fout, '%s:\n', obj.filenames{i});
-                for j = 1 : length(obj.output_params)
-                    param_name = obj.output_params{j};
-                    
+            for trial = unique(trials)
+                trial_idx = strcmp(trials, trial);
+                output_filename = strjoin({'subject', subject, 'run', trial{:}, 'output.yaml'}, '_');
+                
+                fout = fopen(fullfile(output_folder, output_filename), 'w');
+                
+                for i = 1 : length(obj.output_params)
+                    param_name = obj.output_params{i};
                     param_type = data_types.(param_name);
-                    param_value = obj.output_data(i).data.(param_name);
-                    
-                    fprintf(fout, '\tpi_name: %s\n', param_name);
-                    fprintf(fout, '\t\ttype: %s\n', param_type);
-                    if strcmp(param_type, 'value')
-                        fprintf(fout, '\t\tvalue: %s\n', num2str(param_value));
-                    elseif strcmp(param_type, 'vector')
-                        fprintf(fout, '\t\tvalue: [%s]\n', strjoin(arrayfun(@(x) num2str(x), param_value, 'UniformOutput', false), ', '));
+                    fprintf(fout, 'pi_name: %s\n', param_name);
+                    fprintf(fout, '\ttype: %s\n', param_type);
+                
+                    n_conditions = length(condition_list);
+                    param_output = cell(1, n_conditions);
+                    for j = 1: n_conditions
+                        condition = condition_list{j};
+                        file_idx = find(trial_idx & strcmp(conditions, condition));
+                        
+                        if ~isempty(file_idx)
+                            param_value = obj.output_data(file_idx).data.(param_name);
+                            
+                            switch param_type
+                                case 'vector'
+                                    param_output{1, j} = num2str(param_value);
+                                case 'vector of vector'
+                                    param_output{1, j} = sprintf('[%s]', strjoin(num2str2cell(param_value), ', '));
+                                case 'vector of matricies'
+                                    matrix_rows = {};
+                                    for k = 1:size(param_value, 1)
+                                        matrix_rows = [matrix_rows, sprintf('[%s]', strjoin(num2str2cell(param_value(k, :)), ', '))];
+                                    end
+                                    param_output{1, j} = sprintf('[%s]', strjoin(matrix_rows, ', '));
+                            end
+                                    
+                        else
+                            switch param_type
+                                case 'vector'
+                                    param_output{1, j} = 'NaN';
+                                case 'vector of vector'
+                                    param_output{1, j} = '[NaN]';
+                                case 'vector of matricies'
+                                    param_output{1, j} = '[[NaN]]';
+                            end
+                        end
                     end
+                    
+                    fprintf(fout, '\tvalue: [%s]\n', strjoin(param_output, ', '));
                 end
+                
+                fclose(fout);
             end
             
-            fclose(fout);
         end
         
         

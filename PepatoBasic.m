@@ -9,6 +9,7 @@ classdef PepatoBasic
         output_folder;
         
         body_side;
+        condition_list;
         
         FileDat;
     end
@@ -22,6 +23,7 @@ classdef PepatoBasic
             obj.output_folder = out_.path;
             
             obj.body_side = body_side;
+            obj.condition_list = {'speed2kmh', 'speed4kmh', 'speed6kmh'};
             obj.config = [];
             obj.database_path = database_path;
             
@@ -31,52 +33,49 @@ classdef PepatoBasic
         end
         
         
-        function obj = upload_data(obj)
+        function obj = pipeline(obj, N_clusters, muscle_list)
             
             files = dir(fullfile(obj.input_folder, '*.csv'));
             files = struct2cell(files);
             obj.FileDat = files(1, :);
-            
-            obj.data = obj.data.load_data(obj.FileDat, obj.input_folder, obj.body_side);
-        end
-        
-        
-        function obj = pipeline(obj, N_clusters, muscle_list)
-            
-            obj.data = obj.data.spectra_filtering(cell(1, obj.data.n_files));
-            obj.data = obj.data.interpolated_envelope();
-            obj.data = obj.data.envelope_max_normalization();
-            obj.data = obj.data.muscle_synergies();
-            try
-                cluster_name = ['clustering_' int2str(N_clusters)];
-                loaded = load(obj.database_path, cluster_name);
-                assert(isequal(muscle_list, loaded.(cluster_name).('muscle_list')));
-                obj.data = obj.data.module_compare(loaded.(cluster_name));
-            catch
-                warning('Modules comparison with reference is not available. Database error.');
+            [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.input_folder, obj.condition_list);
+            if ~checked_
+                fprintf('ERROR. CSV or YAML file names in "%s" input folder do not match PEPATO requirements, please see README.md file.\n', obj.input_folder);
             end
             
-            obj.data = obj.data.spinal_maps();
-            try
-                loaded = load(obj.database_path, 'maps_patterns');
-                obj.data = obj.data.maps_compare(loaded.('maps_patterns'));
-            catch
-                warning('Spinal maps comparison with reference is not available. Database error.');
-            end
-        end
-        
-        
-        function obj = write_to_file(obj)
-            output_filename = 'subject_';
+            [subjects, ~, ~] = get_trial_info(obj.FileDat);
             
-            names = obj.data.filenames;
-            for i = 1 : length(names)
-                splitted_ = strsplit(names{i}, '_');
-                if i == 1 output_filename = [output_filename, [splitted_{2} '_runs']]; end
-                output_filename = [output_filename, ['_' splitted_{4}]];
+            for subject = unique(subjects)
+                
+                subject_idx = strcmp(subjects, subject);
+                obj.data = obj.data.load_data(obj.FileDat(subject_idx), obj.input_folder, obj.body_side);
+                
+                obj.data = obj.data.spectra_filtering(cell(1, obj.data.n_files));
+                obj.data = obj.data.interpolated_envelope();
+                obj.data = obj.data.envelope_max_normalization();
+                obj.data = obj.data.muscle_synergies();
+                try
+                    cluster_name = ['clustering_' int2str(N_clusters)];
+                    loaded = load(obj.database_path, cluster_name);
+                    assert(isequal(muscle_list, loaded.(cluster_name).('muscle_list')));
+                    obj.data = obj.data.module_compare(loaded.(cluster_name));
+                catch
+                    warning('Modules comparison with reference is not available. Database error.');
+                end
+
+                obj.data = obj.data.spinal_maps();
+                try
+                    loaded = load(obj.database_path, 'maps_patterns');
+                    obj.data = obj.data.maps_compare(loaded.('maps_patterns'));
+                catch
+                    warning('Spinal maps comparison with reference is not available. Database error.');
+                end
+                
+                % write results to the output file
+                obj.data.write_output_yaml(obj.output_folder, obj.condition_list);
+                
+                fprintf('Analysis for subject "%s" done. The resultes are saved.\n', subject{:});
             end
-            
-            obj.data.write_output_yaml(fullfile(obj.output_folder, [output_filename '_pepato_output.yml']));
         end
         
     end

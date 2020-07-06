@@ -73,11 +73,11 @@ emg_timestamp = linspace(0, (emg_frames-1)/emg_framerate, emg_frames)';
 % l_cycle_timestamp = linspace(0, (l_cycle_frames-1)/point_framerate, l_cycle_frames);
 
 
-if ~isempty(strfind(FileDat, '_2_'))
+if ~isempty(strfind(FileDat, 'speed2kmh'))
     gait_freq = 0.75;
-elseif ~isempty(strfind(FileDat, '_4_'))
+elseif ~isempty(strfind(FileDat, 'speed4kmh'))
     gait_freq = 1.5;
-elseif ~isempty(strfind(FileDat, '_6_'))
+elseif ~isempty(strfind(FileDat, 'speed6kmh'))
     gait_freq = 2.25;
 end
 
@@ -100,9 +100,9 @@ R = input('Input run number R: ');
 condition = input('Input condition: ', 's');
 
 T = array2table(data, 'VariableNames', label);
-writetable(T, [PathDat 'subject_' sprintf('%04d', N) '_emg_' sprintf('%03d', R) '_' condition '.csv'], 'Delimiter', ',');
+writetable(T, [PathDat 'subject_' sprintf('%04d', N) '_run_' sprintf('%03d', R) '_' condition '_emg.csv'], 'Delimiter', ',');
 
-write_yaml([PathDat 'subject_' sprintf('%04d', N) '_gaitEvents_' sprintf('%03d', R) '_' condition '.yml'], gaitEvents);
+write_yaml([PathDat 'subject_' sprintf('%04d', N) '_run_' sprintf('%03d', R) '_' condition '_gaitEvents.yaml'], gaitEvents);
 
 % dlmwrite(filename, label{:}, 'delimiter', ',');
 % dlmwrite(filename, data, '-append', 'delimiter', ',', 'roffset', 0, 'precision', 3);

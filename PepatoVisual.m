@@ -217,7 +217,7 @@ classdef PepatoVisual
         
         function obj = draw_muscle_synergies(obj, data, clustering)
             n_handle = 6;
-            [~, conditions] = get_trial_info(data.filenames);
+            [~, ~, conditions] = get_trial_info(data.filenames);
             
             for i = 1 : obj.n_files
                 if strcmp(data.clustering_mode, 'unique')
@@ -246,7 +246,7 @@ classdef PepatoVisual
         function obj = draw_spinal_maps(obj, data, maps_patterns)
             n_handle = 7;
             colormap(jetnew(32,-1)); % recalibrate colormap
-            [~, conditions] = get_trial_info(data.filenames);
+            [~, ~, conditions] = get_trial_info(data.filenames);
         
             for i = 1 : obj.n_files
                 delete(obj.second_level_tab_handle(n_handle, i));
@@ -278,7 +278,8 @@ classdef PepatoVisual
         
         
         function obj = refresh_report(obj, data)
-            n_params = length(obj.parent_obj.data.output_params);
+            params = obj.parent_obj.data.output_params;
+            n_params = length(params);
             to_report = cell(n_params, obj.n_files);
             
             for i = 1 : obj.n_files
@@ -286,13 +287,21 @@ classdef PepatoVisual
                 temp_ = temp_(2);
                 temp_ = struct2cell(temp_{:});
                 to_report(:, i) = temp_(:, 1); 
-                temp_ = to_report(1, i);
+%                 temp_ = to_report(1, i);
                 
                 n_round = 1;
                 for j = 1:n_params
-                    if j == 2 || j == 8 n_round = 2; end
+                    if sum(strcmp(params{j}, {'emg_reco_quality', 'motor_pool_coact_index'})) > 0
+                        n_round = 2; 
+                    end
                     temp_ = to_report(j, i);
-                    if ~ isempty(temp_{:}) to_report(j, i) = {num2str(round(temp_{:}, n_round))}; end
+                    if ~ isempty(temp_{:})
+                        if ~strcmp(params{j}, 'muscle_module_similarity')
+                            to_report(j, i) = {num2str(round(temp_{:}, n_round))}; 
+                        else
+                            to_report(j, i) = {num2str(round(min(temp_{:}, [], 2)', n_round))}; 
+                        end
+                    end
                 end
             end
             

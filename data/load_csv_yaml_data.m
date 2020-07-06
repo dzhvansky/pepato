@@ -22,9 +22,8 @@ emg_label = column_names(index);
 emg_data = emg_data(:, index);
 
 splitted = strsplit(csv_file_name, '_');
-splitted{3} = 'gaitEvents';
+splitted{end} = 'gaitEvents.yaml';
 yaml_file_name = strjoin(splitted, '_');
-yaml_file_name(end-2:end) = 'yml';
 
 gait_events = read_yaml(fullfile(path_to_csv_file, yaml_file_name));
 events = gait_events.([body_side(1) '_heel_strike']);
