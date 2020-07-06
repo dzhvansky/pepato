@@ -25,7 +25,7 @@ subject_N_run_R_testcondition_gaitEvents.yaml
 ``` 
 - Set input_folder, output_folder, body_side, config parameters, database filename and list of muscles (optional)
 - Format of path folder: path from current folder or full path
-- The output file will be saved to the output folder as 'subject_N_runs_R1_R2_R3_pepato_output.yml'
+- The output files will be saved to the output folder as 'subject_N_run_R_output.yaml'
 
 
 ## MATLAB version >= 2015b
