@@ -4,15 +4,11 @@ n_emg = size(emg_data, 2);
 [psd_emg, f] = emg_spectra(emg_data, emg_framerate);
 scaler = max(max(psd_emg));
 
-% fh = figure('name', 'Band noise filtration', 'NumberTitle','off', 'units','normalized','outerposition',[0 0 1 1]); 
-
 axes('Parent', handle_obj);
 
-%clf;
 for i = 1:n_emg
     ax(i) = subplot('Position', [.14, .12+(n_emg-i)*.8/n_emg, .72, .75/n_emg]);
     plt(i) = plot(f, psd_emg(:,i), 'Color', colors(i,:), 'Tag', ['psd_raw_' num2str(i)]);
-    % xlim([high_pass low_pass]);    
     xlim([0 emg_framerate/2]);
     ylim([0 scaler]);
     ylabel(sprintf([emg_label{i} '\n']), 'Rotation', 0, 'VerticalAlignment','middle', 'HorizontalAlignment','right');
@@ -73,9 +69,6 @@ for i = 1:n_emg
         xlabel('Hz'); ylabel(sprintf([ '[PSD]\n' emg_label{i} '\n']), 'Rotation', 0, 'VerticalAlignment','middle', 'HorizontalAlignment','right');
     end
     
-%     for j = find(freq2filt_accept)
-%         rect(j,i).FaceColor = [1 0 0 .15];
-%     end
 end
 linkaxes(find_axes_by_plot(handle_obj, 'psd_filt_*'), 'xy'); % linking of subplot axes for X-axis
 

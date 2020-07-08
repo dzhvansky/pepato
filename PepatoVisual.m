@@ -77,7 +77,7 @@ classdef PepatoVisual
                 obj.first_level_tab_group.SelectedTab = obj.first_level_tab_handle(i);
                 obj.second_level_tab_group{i}.SelectedTab = obj.second_level_tab_handle(n_handle, i);
                 
-                fig_emg(obj.second_level_tab_handle(n_handle, i), data.colors{i}, data.emg_data_raw{i}, data.emg_timestamp{i}, data.emg_bounds{i}, data.emg_framerate{i}, data.emg_label{i});
+                fig_emg(obj.second_level_tab_handle(n_handle, i), data.colors{i}, data.emg_data_raw{i}, data.emg_timestamp{i}, data.emg_bounds{i}, data.emg_framerate{i}, data.emg_label{i}, data.mov_data{i}, data.mov_timestamp{i});
             end
             
             obj.parent_obj.visual = obj;
@@ -286,8 +286,7 @@ classdef PepatoVisual
                 temp_ = struct2cell(data.output_data(i)); 
                 temp_ = temp_(2);
                 temp_ = struct2cell(temp_{:});
-                to_report(:, i) = temp_(:, 1); 
-%                 temp_ = to_report(1, i);
+                to_report(:, i) = temp_(:, 1);
                 
                 n_round = 1;
                 for j = 1:n_params

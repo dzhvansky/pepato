@@ -51,7 +51,7 @@ classdef FigSpinalmaps < handle
             for j = 1:6
                 plot(linspace(1, 100, obj.n_points), obj.motorpools_activation_avg(7-j, :), 'Tag', ['mp_activation_' num2str(j)]); hold on;
             end
-            legend({'L2' 'L3' 'L4' 'L5' 'S1' 'S2'});
+            legend({'L2' 'L3' 'L4' 'L5' 'S1' 'S2'}, 'Location', 'best');
             set(gca, 'XTick', 0:20:100); 
             set(gca, 'XTickLabel', 0:20:100);
             xlim([1 100]);

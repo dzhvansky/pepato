@@ -35,7 +35,7 @@ classdef PepatoBasic
         
         function obj = pipeline(obj, N_clusters, muscle_list)
             
-            files = dir(fullfile(obj.input_folder, '*.csv'));
+            files = dir(fullfile(obj.input_folder, '*emg.csv'));
             files = struct2cell(files);
             obj.FileDat = files(1, :);
             [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.input_folder, obj.condition_list);

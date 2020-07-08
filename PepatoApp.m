@@ -2,7 +2,7 @@ classdef PepatoApp < handle
     
     properties
         
-        file_extension = 'csv';
+        file_extension = '.csv';
         body_side; 
         condition_list;
         
@@ -235,13 +235,13 @@ classdef PepatoApp < handle
                     
                     switch obj.load_type
                         case 'raw'
-                            file_ext = obj.file_extension; multiselect = 'on';
+                            file_ext = ['emg' obj.file_extension]; multiselect = 'on';
                         case {'preproc', 'repro'}
-                            file_ext = 'mat'; multiselect = 'off';                                               
+                            file_ext = '.mat'; multiselect = 'off';                                               
                     end
                     
                     try
-                        [obj.FileDat, obj.PathDat] = uigetfile(['/cd/*.' file_ext], 'Open EMG data', 'Multiselect', multiselect);
+                        [obj.FileDat, obj.PathDat] = uigetfile(['/cd/*' file_ext], 'Open EMG data', 'Multiselect', multiselect);
 
                         switch obj.load_type
                             case 'raw'

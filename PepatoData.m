@@ -16,6 +16,8 @@ classdef PepatoData
         emg_timestamp;
         emg_framerate;
         emg_label;
+        mov_data;
+        mov_timestamp;
         
         freq2filt;
         
@@ -137,13 +139,15 @@ classdef PepatoData
             obj.emg_label = cell(1, obj.n_files);
             obj.unused_labels = cell(1, obj.n_files);
             obj.emg_framerate = cell(1, obj.n_files);
+            obj.mov_data = cell(1, obj.n_files);
+            obj.mov_timestamp = cell(1, obj.n_files);
             
             obj.colors = cell(1, obj.n_files);
             
             obj.emg_bounds = cell(1, obj.n_files);            
             
             for i = 1 : obj.n_files
-                [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
+                [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.mov_data{i}, obj.mov_timestamp{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, obj.unused_labels{i}] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
                 obj.colors{i} = obj.all_colors(muscle_index, :);
             end
@@ -155,9 +159,9 @@ classdef PepatoData
         function obj = segment_selection(obj, time_bounds)        
             for i = 1 : obj.n_files
                 if ~ isempty(obj.emg_data_cleaned)
-                    [obj.emg_data_cleaned{i}, ~, ~] = segment_selection(obj.emg_data_cleaned{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, time_bounds{i});
+                    [obj.emg_data_cleaned{i}, ~, ~] = select_segment(obj.emg_data_cleaned{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, time_bounds{i});
                 end
-                [obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}] = segment_selection(obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, time_bounds{i});
+                [obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}] = select_segment(obj.emg_data_raw{i}, obj.emg_bounds{i}, obj.emg_timestamp{i}, obj.emg_framerate{i}, time_bounds{i});
             end
             obj.parent_obj.data = obj;
         end

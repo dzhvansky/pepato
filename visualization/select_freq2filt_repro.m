@@ -3,14 +3,12 @@ n_emg = size(emg_data, 2);
 
 axes('Parent', handle_obj);
 
-
 emg_data_filtered = filter_emg(emg_data, emg_framerate, high_pass, low_pass, freq2filt_accepted);
 
 
 [psd_emg_hl_bc, f] = emg_spectra(emg_data_filtered, emg_framerate);
 scaler = max(max(psd_emg_hl_bc));
-    
-% delete(plt);
+
 for i = 1:n_emg
     subplot('Position', [.14, .12+(n_emg-i)*.8/n_emg, .72, .75/n_emg]);
     plot(f, psd_emg_hl_bc(:,i), 'Color', colors(i,:), 'Tag', ['psd_filt_' num2str(i)]);

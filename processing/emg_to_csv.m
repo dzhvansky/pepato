@@ -3,7 +3,13 @@ addpath(genpath('D:\!Work\Science\PEPATO\btk'))
 
 [FileDat, PathDat] = uigetfile(['/cd/*.' 'c3d'], 'Open EMG data', 'Multiselect', 'off');
 Path2datafiles = [PathDat FileDat];
-side = 'left';
+
+disp(FileDat);
+N = input('Input subject`s number N: ');
+R = input('Input run number R: ');
+condition = input('Input condition: ', 's');
+output_name = strjoin({'subject', sprintf('%04d', N), 'run', sprintf('%03d', R), condition}, '_');
+
 
 if strcmp(Path2datafiles(end-2 : end), 'mat')
     load(Path2datafiles, 'ANALOGdat', 'POINTdat', 'ParameterGroup', 'AnalogFrameRate');
@@ -36,7 +42,8 @@ end
 emg_label = {'BiFe_left', 'GaLa_left', 'GaMe_left', 'GlMa_left', 'ReFe_left', 'SeTe_left', 'Sol_left', 'TeFa_left', 'TiAn_left', 'VaLa_left', 'VaMe_left', ...
     'BiFe_right', 'GaLa_right', 'GaMe_right', 'GlMa_right', 'ReFe_right', 'SeTe_right', 'Sol_right', 'TeFa_right', 'TiAn_right', 'VaLa_right', 'VaMe_right'};
 
-emg_data = ANALOGdat([28, 35, 34, 25, 30, 29, 36, 26, 37, 31, 32,     41, 47, 46, 38, 43, 42, 48, 39, 49, 44, 45], :)';
+emg_data = ANALOGdat([28, 35, 34, 25, 30, 29, 36, 26, 37, 31, 32,...
+    41, 47, 46, 38, 43, 42, 48, 39, 49, 44, 45], :)';
 % if strcmp(side, 'right')
 %     emg_data = ANALOGdat(38:49, :)';
 % elseif strcmp(side, 'left')
@@ -65,24 +72,28 @@ l_toe_y = squeeze(POINTdat(3, 33, :));
 
 r_cycle_separator = atand((r_toe_x - r_thi_x) ./ (r_thi_y - r_toe_y));
 l_cycle_separator = atand((l_toe_x - l_thi_x) ./ (l_thi_y - l_toe_y));
-% r_cycle_frames = size(r_cycle_separator, 1);
-% l_cycle_frames = size(l_cycle_separator, 1);
+r_cycle_frames = size(r_cycle_separator, 1);
+l_cycle_frames = size(l_cycle_separator, 1);
 
 emg_timestamp = linspace(0, (emg_frames-1)/emg_framerate, emg_frames)';
-% r_cycle_timestamp = linspace(0, (r_cycle_frames-1)/point_framerate, r_cycle_frames);
-% l_cycle_timestamp = linspace(0, (l_cycle_frames-1)/point_framerate, l_cycle_frames);
+r_cycle_timestamp = linspace(0, (r_cycle_frames-1)/point_framerate, r_cycle_frames)';
+l_cycle_timestamp = linspace(0, (l_cycle_frames-1)/point_framerate, l_cycle_frames)';
 
 
-if ~isempty(strfind(FileDat, 'speed2kmh'))
+if strcmp(condition, 'speed2kmh')
     gait_freq = 0.75;
-elseif ~isempty(strfind(FileDat, 'speed4kmh'))
+elseif strcmp(condition, 'speed4kmh')
     gait_freq = 1.5;
-elseif ~isempty(strfind(FileDat, 'speed6kmh'))
+elseif strcmp(condition, 'speed6kmh')
     gait_freq = 2.25;
+else
+    error('Invalid condition specified.');
 end
 
-% r_cycle_separator(1:7700) -- for Yani -- 77 sec cut
-% l_cycle_separator(1:7700) -- for Yani -- 77 sec cut
+% r_cycle_separator = r_cycle_separator(1:7700); %-- for Yani -- 77 sec cut
+% l_cycle_separator = l_cycle_separator(1:7700); %-- for Yani -- 77 sec cut
+% r_cycle_timestamp = r_cycle_timestamp(1:7700); %-- for Yani -- 77 sec cut
+% l_cycle_timestamp = l_cycle_timestamp(1:7700); %-- for Yani -- 77 sec cut
 r_emg_bounds = find_gait_events(r_cycle_separator, point_framerate, gait_freq);
 l_emg_bounds = find_gait_events(l_cycle_separator, point_framerate, gait_freq);
 
@@ -91,21 +102,16 @@ gaitEvents.r_heel_strike = r_emg_bounds;
 gaitEvents.l_heel_strike = l_emg_bounds;
 
 label = [{'time'}, emg_label];
-data = [emg_timestamp * 1000, round(emg_data, 5)];
-% data = [emg_timestamp * 1000, emg_data]; -- without rounding -- 
-% data = data(1:154000, :); -- for Yani -- 77 sec cut
+data = [emg_timestamp * 1000, round(emg_data, 5)]; % -- emg data rounded -- 
+% data = data(1:154000, :); %-- for Yani -- 77 sec cut
 
-N = input('Input subject`s number N: ');
-R = input('Input run number R: ');
-condition = input('Input condition: ', 's');
+T_kin = array2table([l_cycle_timestamp * 1000, l_cycle_separator, r_cycle_timestamp * 1000, r_cycle_separator], ...
+    'VariableNames', {'left_time', 'left_cycles', 'right_time', 'right_cycles'});
+writetable(T_kin, fullfile(PathDat, strjoin({output_name, 'cycles.csv'}, '_')), 'Delimiter', ',');
 
 T = array2table(data, 'VariableNames', label);
-writetable(T, [PathDat 'subject_' sprintf('%04d', N) '_run_' sprintf('%03d', R) '_' condition '_emg.csv'], 'Delimiter', ',');
+writetable(T, fullfile(PathDat, strjoin({output_name, 'emg.csv'}, '_')), 'Delimiter', ',');
 
-write_yaml([PathDat 'subject_' sprintf('%04d', N) '_run_' sprintf('%03d', R) '_' condition '_gaitEvents.yaml'], gaitEvents);
+write_yaml(fullfile(PathDat, strjoin({output_name, 'gaitEvents.yaml'}, '_')), gaitEvents);
 
-% dlmwrite(filename, label{:}, 'delimiter', ',');
-% dlmwrite(filename, data, '-append', 'delimiter', ',', 'roffset', 0, 'precision', 3);
 end
-
-

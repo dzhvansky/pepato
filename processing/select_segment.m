@@ -1,7 +1,5 @@
-% function [emg_data, emg_bounds, emg_timestamp] = segment_selection(emg_data, emg_bounds, emg_timestamp, emg_framerate, point_framerate, time_bounds)
-function [emg_data, emg_bounds, emg_timestamp] = segment_selection(emg_data, emg_bounds, emg_timestamp, emg_framerate, time_bounds)
+function [emg_data, emg_bounds, emg_timestamp] = select_segment(emg_data, emg_bounds, emg_timestamp, emg_framerate, time_bounds)
 
-% [emg_segment, ~] = segment_calculation(time_bounds, emg_framerate, point_framerate, size(emg_data, 1), 1);
 emg_segment = segment_calculation(time_bounds, emg_framerate, size(emg_data, 1));
 
 time_list = [];
