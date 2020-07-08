@@ -9,10 +9,10 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 [4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#gait-events-file)
 
 - Electromiography and Gait events files should be named the same
-- File name format:
+- File name format (gait speed V should be in the list of [2, 4, 6] km per hour):
 ```
-subject_N_run_R_testcondition_emg.csv
-subject_N_run_R_testcondition_gaitEvents.yaml
+subject_N_run_R_speedVkmh_emg.csv
+subject_N_run_R_speedVkmh_gaitEvents.yaml
 ```
 
 
