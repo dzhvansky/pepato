@@ -23,11 +23,11 @@ subject_N_run_R_speedVkmh_gaitEvents.yaml
 ```
 >>> ./run_pepato left BLF ./test_data ./test_data
 ``` 
-### Run (octave-client)
-```
 - Set body side, NMF stop criteria, input dir and output dir
 - Body side should be from the list of ['left', 'right']
 - NMF stop criteria should be from the list of ['BLF', 'R2=0.90', 'N=4']
+### Run (octave-client)
+```
 >>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'db/db_healthy_adults_8m.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
 - Set input_folder, output_folder, body_side, config parameters, database filename and list of muscles (optional)
