@@ -3,7 +3,7 @@ printf ('current directory: %s\n', pwd())
 
 [pepato_path, ~, ~] = fileparts(mfilename('fullpath'));
 
-dir_list = {'config', 'data', 'database', 'features', 'logging', 'processing', 'utils', 'visualization'};
+dir_list = {'data', 'features', 'processing', 'utils'};
 dir_list = cellfun(@(x) fullfile(pepato_path, x), dir_list, 'un', 0);
 dir_list = [dir_list, pepato_path];
 cellfun(@(x) addpath(x), dir_list, 'un', 0);

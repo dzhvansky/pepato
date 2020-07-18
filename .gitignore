@@ -1,8 +1,6 @@
 test_data/
-.pepato
 *.mat
 *.asv
 
-# !cfg/initial_cfg.mat
-# !db/module_ordering_8m_4.mat
-# !db/db_healthy_adults_8m.mat
+!db/module_ordering_8m_4.mat
+!db/db_healthy_adults_8m.mat
