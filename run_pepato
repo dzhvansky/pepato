@@ -1,0 +1,36 @@
+#!/usr/bin/octave -qf
+printf ('current directory: %s\n', pwd())
+
+[pepato_path, ~, ~] = fileparts(mfilename('fullpath'));
+
+dir_list = {'config', 'data', 'database', 'features', 'logging', 'processing', 'utils', 'visualization'};
+dir_list = cellfun(@(x) fullfile(pepato_path, x), dir_list, 'un', 0);
+dir_list = [dir_list, pepato_path];
+cellfun(@(x) addpath(x), dir_list, 'un', 0);
+
+arg_list = argv ();
+if nargin ~= 4
+  printf ('ERROR: There should be 4 args. Side of the body, NMF stop criteria, the dir containing the experiment data files (*emg.csv + *gaitEvents.yaml) and the dir where the results will be stored\n');
+  printf ('Usage:\n');
+  printf ('\t./run_pepato body_side nnmf_stop_criteria data_dir result_dir\n\n');
+  exit(127);
+end
+
+printf ('body side: %s\n', arg_list{1});
+printf ('NMF stop criteria: %s\n', arg_list{2});
+printf ('data dir: %s\n', arg_list{3});
+printf ('result dir: %s\n', arg_list{4});
+
+for package_name = {'signal', 'statistics'}
+    pkg('load', package_name{:});
+end
+
+% config = {high_pass, low_pass, norm_points, n_module_max, nnmf_replicates, nnmf_stop_criterion}
+% nnmf_stop_criterion must be from the list ['BLF', 'N=4', 'R2=0.90']
+config = {20, 400, 200, 8, 10, arg_list{2}};
+db_path = fullfile(pepato_path, 'db/db_healthy_adults_8m.mat');
+muscle_list = {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'};
+
+PepatoBasic()...
+    .init(arg_list{3}, arg_list{4}, arg_list{1}, config, db_path, muscle_list)...
+    .pipeline({'speed2kmh', 'speed4kmh', 'speed6kmh'}, 4);
