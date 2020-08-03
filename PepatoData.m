@@ -331,7 +331,7 @@ classdef PepatoData
                 nearest_cluster_dist = zeros(n_rows, 1);
                 muscle_module_similarity = zeros(n_rows, N_clusters);
                 for j = 1:n_rows
-                    muscle_module_similarity(j, :) = sqrt(sum((cluster_center - repmat(features(j, :), N_clusters, 1)) .^ 2, 2) / n_features);
+                    muscle_module_similarity(j, :) = sqrt(sum((cluster_center(:, 1:n_muscles) - repmat(features(j, 1:n_muscles), N_clusters, 1)) .^ 2, 2) / n_muscles);
                     [nearest_cluster_dist(j), cluster_idx(j)] = min(muscle_module_similarity(j, :));
                     
                 end
