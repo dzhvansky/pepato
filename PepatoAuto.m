@@ -55,7 +55,7 @@ classdef PepatoAuto < handle
             obj.logger.message('INFO', sprintf('PEPATO init parameters: FontSize = %d, body_side = %s, config_filename = %s, database_filename = %s, muscle_list = %s', FontSize, body_side, config_filename, database_filename, strjoin(muscle_list_to_print, ', ')));
             obj.logger.message('INFO', sprintf('MATLAB version: %s', version));
             
-            obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {20, 400, 200, 8, 10, 'N=4'});
+            obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {30, 400, 200, 8, 10, 'N=4'});
             obj.data = PepatoData().init(obj, muscle_list);
             n_basic_patterns = 4;
             obj.database = DataBase().init(obj, database_filename, n_basic_patterns);

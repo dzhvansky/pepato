@@ -76,9 +76,9 @@ for j = 1:n_conditions
         [cluster_idx, cluster_center] = get_cluster_order(cluster_idx, cluster_center, ordered_modules);
     end
     % cluster_center_orig = cluster_center .* repmat(scaler_std, N_clusters, 1) + repmat(scaler_mean, N_clusters, 1);
-    include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold); 
+    include_mask = get_cluster_mask(features(:, 1:n_muscles), cluster_idx, cluster_center(:, 1:n_muscles), mean_threshold, max_threshold); 
     output.('data').(condition).('cluster_center') = cluster_center;
-
+    
     weight_mean = zeros(N_clusters, n_muscles);
     weight_sd = zeros(N_clusters, n_muscles);
     pattern_mean = zeros(N_clusters, n_points);

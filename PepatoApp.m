@@ -131,7 +131,7 @@ classdef PepatoApp < handle
             obj.button_SaveProcessed = uicontrol(save_panel, 'Style', 'pushbutton', 'Enable', 'off', 'String', 'Save processed data', 'FontSize', obj.FontSize, 'Units', 'normal', 'Position', [.05 .1 .9 .4], 'Tag', 'button_save');
             obj.button_SaveProcessed.Callback = @obj.button_SaveProcessed_pushed; 
                        
-            obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {20, 400, 200, 8, 10, 'N=4'});
+            obj.config = Config().init(obj, config_filename, {'high_pass', 'low_pass', 'n_points', 'n_synergies_max', 'nnmf_replicates', 'nnmf_stop_criterion'}, {30, 400, 200, 8, 10, 'N=4'});
             obj.data = PepatoData().init(obj, muscle_list);
             obj.visual = PepatoVisual().init(obj, obj.visual_panel);
             n_clusters = 4;

@@ -34,7 +34,7 @@ if addpath_flag
             cell2struct({'none', 'modal', '<html><font size="4">Yes'}, {'Interpreter', 'WindowStyle', 'Default'}, 2));
         switch q
             case '<html><font size="4">Yes'
-%                 cellfun(@(x) addpath(x), dir_list, 'un', 0);
+                cellfun(@(x) addpath(x), dir_list, 'un', 0);
                 fileID = fopen(fullfile(pepato_path, '.pepato'), 'w');
                 fprintf(fileID, '%s\n', dir_list{:});
                 fclose(fileID);

@@ -266,8 +266,9 @@ classdef FigSynergies < handle
                 axes_weight = get(findobj(allchild(obj.handle_obj), 'Tag', ['weight_' num2str(plot_idx)]), 'parent');
                 
                 axes(axes_pattern);
-                name = sprintf('%s: dist=%s', inout{is_clustered(i)+1}, num2str(round(nearest_cluster_dist(i), 2)));
-                plot(linspace(1, 100, obj.n_points), norm_patterns(i, :), 'Color', obj.colors(i,:), 'LineWidth', 1, 'DisplayName', name);
+                corr_coef = corrcoef(norm_patterns(i, :), pattern_mean(n_cluster(1, i), :));
+                name_pattern = sprintf('%s: corr coef = %0.2f', inout{is_clustered(i)+1}, corr_coef(1,2));
+                plot(linspace(1, 100, obj.n_points), norm_patterns(i, :), 'Color', obj.colors(i,:), 'LineWidth', 1, 'DisplayName', name_pattern);
                 emg_sd = fill([linspace(1, 100, obj.n_points) fliplr(linspace(1, 100, obj.n_points))], ...
                     [max(norm_patterns(i, :) - norm_patterns_sd(i, :), zeros(1, obj.n_points)) fliplr(norm_patterns(i, :) + norm_patterns_sd(i, :))], ...
                     obj.colors(i,:), 'EdgeColor', 'None', 'FaceAlpha', .2);
@@ -275,7 +276,8 @@ classdef FigSynergies < handle
                 legend('-DynamicLegend', 'Location', 'best');
                 
                 axes(axes_weight);
-                plot(obj.w_normalized(:, i)', 'Color', obj.colors(i,:), 'Marker', 'o', 'LineWidth', .5, 'MarkerEdgeColor','None', 'MarkerFaceColor',[.3 .3 .3], 'MarkerSize', 4, 'DisplayName', name);
+                name_weight = sprintf('%s: dist = %s', inout{is_clustered(i)+1}, num2str(round(nearest_cluster_dist(i), 2)));
+                plot(obj.w_normalized(:, i)', 'Color', obj.colors(i,:), 'Marker', 'o', 'LineWidth', .5, 'MarkerEdgeColor','None', 'MarkerFaceColor',[.3 .3 .3], 'MarkerSize', 4, 'DisplayName', name_weight);
                 legend('-DynamicLegend', 'Location', 'best');
             end
         end

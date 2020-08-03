@@ -307,6 +307,7 @@ classdef PepatoData
         
         function obj = module_compare(obj, clustering)
             [~, ~, conditions] = get_trial_info(obj.filenames);
+            n_muscles = length(obj.muscle_list);
             
             for i = 1 : obj.n_files
                 if strcmp(obj.clustering_mode, 'unique')
@@ -334,7 +335,7 @@ classdef PepatoData
                     [nearest_cluster_dist(j), cluster_idx(j)] = min(muscle_module_similarity(j, :));
                     
                 end
-                include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold);
+                include_mask = get_cluster_mask(features(:, 1:n_muscles), cluster_idx, cluster_center(:, 1:n_muscles), mean_threshold, max_threshold);
                 
                 matching_standard_reference_index = cluster_idx';
                 matching_standard_reference_index(~include_mask') = NaN;

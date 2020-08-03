@@ -1,6 +1,6 @@
 function db_generator(source_dir, db_name, muscle_list, nmf_set)
 
-pepato = PepatoAuto(10, 'left', 'cfg/init_cfg.mat', db_name, muscle_list);
+pepato = PepatoAuto(10, 'left', 'cfg/initial_cfg.mat', db_name, muscle_list);
 drawnow;
 
 files = dir(fullfile(source_dir, '*.mat'));

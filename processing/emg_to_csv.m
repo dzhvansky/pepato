@@ -42,13 +42,15 @@ end
 emg_label = {'BiFe_left', 'GaLa_left', 'GaMe_left', 'GlMa_left', 'ReFe_left', 'SeTe_left', 'Sol_left', 'TeFa_left', 'TiAn_left', 'VaLa_left', 'VaMe_left', ...
     'BiFe_right', 'GaLa_right', 'GaMe_right', 'GlMa_right', 'ReFe_right', 'SeTe_right', 'Sol_right', 'TeFa_right', 'TiAn_right', 'VaLa_right', 'VaMe_right'};
 
-emg_data = ANALOGdat([28, 35, 34, 25, 30, 29, 36, 26, 37, 31, 32,...
-    41, 47, 46, 38, 43, 42, 48, 39, 49, 44, 45], :)';
-% if strcmp(side, 'right')
-%     emg_data = ANALOGdat(38:49, :)';
-% elseif strcmp(side, 'left')
-%     emg_data = ANALOGdat([25:32 34:37], :)';
-% end
+ANALOG_label = md.children.ANALOG.children.LABELS.info.values;
+emg_idx = [];
+for label = {'LBF', 'LLG', 'LMG', 'LGM', 'LRF', 'LST', 'LSOL', 'LTFL', 'LTA', 'LVL', 'LVM', ...
+        'RBF', 'RLG', 'RMG', 'RGM', 'RRF', 'RST', 'RSOL', 'RTFL', 'RTA', 'RVL', 'RVM'}
+    idx = find(strcmp(ANALOG_label, label{:}), 1, 'first');
+    emg_idx = [emg_idx, idx];
+end
+
+emg_data = ANALOGdat(emg_idx, :)';
 
 emg_frames = size(emg_data, 1);
 n_shift = round(48 * emg_framerate / 1000);
@@ -56,22 +58,39 @@ n_shift = round(48 * emg_framerate / 1000);
 % shift DELSYS EMG by 48 msec (standard DELSYS wireless lag = 48 msec)
 emg_data = [emg_data(n_shift+1 : end, :); zeros([n_shift size(emg_data, 2)])]; 
 
+POINT_label = md.children.POINT.children.LABELS.info.values;
+r_heel_idx = find(strcmp(POINT_label, 'RHEE'));
+l_heel_idx = find(strcmp(POINT_label, 'LHEE'));
+r_thi_idx = find(strcmp(POINT_label, 'RTHI'));
+l_thi_idx = find(strcmp(POINT_label, 'LTHI'));
+r_toe_idx = find(strcmp(POINT_label, 'RTOE'));
+l_toe_idx = find(strcmp(POINT_label, 'LTOE'));
 % thi -- thigh, toe -- big toe; max = heel strike
 
-r_thi_x = squeeze(POINTdat(1, 34, :));
-r_thi_y = squeeze(POINTdat(3, 34, :));
+r_thi_x = squeeze(POINTdat(1, r_thi_idx, :));
+r_thi_y = squeeze(POINTdat(3, r_thi_idx, :));
 
-r_toe_x = squeeze(POINTdat(1, 39, :));
-r_toe_y = squeeze(POINTdat(3, 39, :));
+r_toe_x = squeeze(POINTdat(1, r_toe_idx, :));
+r_toe_y = squeeze(POINTdat(3, r_toe_idx, :));
 
-l_thi_x = squeeze(POINTdat(1, 28, :));
-l_thi_y = squeeze(POINTdat(3, 28, :));
+l_thi_x = squeeze(POINTdat(1, l_thi_idx, :));
+l_thi_y = squeeze(POINTdat(3, l_thi_idx, :));
 
-l_toe_x = squeeze(POINTdat(1, 33, :));
-l_toe_y = squeeze(POINTdat(3, 33, :));
+l_toe_x = squeeze(POINTdat(1, l_toe_idx, :));
+l_toe_y = squeeze(POINTdat(3, l_toe_idx, :));
 
-r_cycle_separator = atand((r_toe_x - r_thi_x) ./ (r_thi_y - r_toe_y));
-l_cycle_separator = atand((l_toe_x - l_thi_x) ./ (l_thi_y - l_toe_y));
+r_heel_x = squeeze(POINTdat(1, r_heel_idx, :));
+r_heel_y = squeeze(POINTdat(3, r_heel_idx, :));
+
+l_heel_x = squeeze(POINTdat(1, l_heel_idx, :));
+l_heel_y = squeeze(POINTdat(3, l_heel_idx, :));
+
+% r_cycle_separator = atand((r_toe_x - r_thi_x) ./ (r_thi_y - r_toe_y));
+% l_cycle_separator = atand((l_toe_x - l_thi_x) ./ (l_thi_y - l_toe_y));
+% r_cycle_separator = (r_heel_x - min(r_heel_x)).^2 + (-r_heel_y - min(-r_heel_y)).^2;
+% l_cycle_separator = (l_heel_x - min(r_heel_x)).^2 + (-l_heel_y - min(-l_heel_y)).^2;
+r_cycle_separator = r_heel_y;
+l_cycle_separator = l_heel_y;
 r_cycle_frames = size(r_cycle_separator, 1);
 l_cycle_frames = size(l_cycle_separator, 1);
 
@@ -94,8 +113,8 @@ end
 % l_cycle_separator = l_cycle_separator(1:7700); %-- for Yani -- 77 sec cut
 % r_cycle_timestamp = r_cycle_timestamp(1:7700); %-- for Yani -- 77 sec cut
 % l_cycle_timestamp = l_cycle_timestamp(1:7700); %-- for Yani -- 77 sec cut
-r_emg_bounds = find_gait_events(r_cycle_separator, point_framerate, gait_freq);
-l_emg_bounds = find_gait_events(l_cycle_separator, point_framerate, gait_freq);
+r_emg_bounds = find_gait_events(r_heel_x, r_heel_y, point_framerate, gait_freq);
+l_emg_bounds = find_gait_events(l_heel_x, l_heel_y, point_framerate, gait_freq);
 
 gaitEvents = [];
 gaitEvents.r_heel_strike = r_emg_bounds;

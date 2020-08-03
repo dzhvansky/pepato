@@ -130,7 +130,7 @@ classdef Config
                 else
                     if ~ isempty(setdiff(config, obj.config_base(config_name, :)))
                         add_to_name = strsplit(filename, {'/', '\'});
-                        add_to_name = strrep(add_to_name(end), '.', '_');
+                        add_to_name = strrep(add_to_name{end}, '.', '_');
                         new_config_name = [config_name '_' add_to_name];
                         config.Properties.RowNames = {new_config_name};
                         
