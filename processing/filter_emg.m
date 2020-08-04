@@ -37,4 +37,19 @@ if BC == 1
     end
 end
 
+artifact_filter_idx = [];
+hp150 = 150 /(emg_framerate/2); %high pass 150 Hz
+[bh150, ah150] = butter(2, hp150, 'high'); %Butterworth 2-nd order
+for emg_idx = artifact_filter_idx
+    [psd_emg_old, ~] = emg_spectra(emg_data(:,emg_idx), emg_framerate);
+    emg_data(:,emg_idx) = filtfilt(bh150, ah150, emg_data(:,emg_idx)); %high-pass 4-th order Butterworth filter
+    [psd_emg_new, ~] = emg_spectra(emg_data(:,emg_idx), emg_framerate);
+    emg_data(:,emg_idx) = emg_data(:,emg_idx) * mean(psd_emg_old) / mean(psd_emg_new);
+end
+
+zeroing_idx = [];
+for emg_idx = zeroing_idx
+    emg_data(:,emg_idx) = 1e-3 * randn(size(emg_data(:,emg_idx)));
+end
+
 end
