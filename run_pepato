@@ -1,4 +1,5 @@
-#!/usr/bin/octave -qf
+#! /usr/bin/octave -qf
+printf ('Hello world')
 printf ('current directory: %s\n', pwd())
 
 [pepato_path, ~, ~] = fileparts(mfilename('fullpath'));
