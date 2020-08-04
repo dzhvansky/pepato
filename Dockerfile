@@ -16,3 +16,17 @@ RUN ["chmod", "+x", "package_install.m"]
 #RUN chmod u+x package_install.m 
 RUN pwd; ls
 RUN octave package_install.m
+RUN ln -s /octave/bin/octave /usr/bin/octave
+
+# create user account, and create user home dir
+RUN useradd -ms /bin/bash pepato
+
+ADD db /home/pepato/db
+ADD src /home/pepato/src
+ADD run_pepato /home/pepato/
+
+# set the user as owner of the copied files.
+RUN chown -R pepato:pepato /home/pepato/
+
+USER pepato
+WORKDIR /home/pepato
