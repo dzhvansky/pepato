@@ -4,9 +4,9 @@ n_samples = size(emg_normalized, 1);
 n_emg = size(emg_normalized, 2);
 
 if nargin < 3
-    n_points = 200; replicates = 10;
+    n_points = 200; replicates = 20;
 elseif nargin < 4
-    replicates = 10;
+    replicates = 20;
 end
 
 % nmf_options = statset('MaxIter',1000,'TolFun',1e-5,'TolX',1e-5); %Nonnegative Matrix Factorization Options
@@ -15,8 +15,11 @@ end
 nmf_options = cell2struct({[], [], [50 10 1e-5], 1000, false, false, true}, ...
     {'isynfiltcoef', 'synfiltcoef_filter_par', 'niter', 'nmaxiter', 'print', 'plot', 'updateW'}, 2);
 R_best = -1;
+rng('default');
 for i = 1:replicates
-    [W,C,R] = find_leeseung(emg_normalized', rand(n_emg, n_synergies), rand(n_synergies, n_samples), n_synergies, nmf_options);
+    W0 = rand(n_emg, n_synergies);
+    C0 = rand(n_synergies, n_samples); 
+    [W,C,R] = find_leeseung(emg_normalized', W0, C0, n_synergies, nmf_options);
     if R(end) > R_best
         W_best = W;
         C_best = C;

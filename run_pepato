@@ -27,7 +27,7 @@ end
 
 % config = {high_pass, low_pass, norm_points, n_module_max, nnmf_replicates, nnmf_stop_criterion}
 % nnmf_stop_criterion must be from the list ['BLF', 'N=4', 'R2=0.90']
-config = {30, 400, 200, 8, 10, arg_list{2}};
+config = {30, 400, 200, 8, 50, arg_list{2}};
 db_path = fullfile(pepato_path, 'db/db_healthy_adults_8m.mat');
 muscle_list = {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'};
 
