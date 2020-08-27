@@ -21,14 +21,16 @@ subject_N_run_R_speedVkmh_gaitEvents.yaml
 ### Packages required: signal >= 1.4.1 statistics >= 1.4.1
 ### Run (bash)
 ```
->>> ./run_pepato left BLF ./test_data ./test_data
+>>> ./run_pepato left BLF db_healthy_adults_8m ./test_data ./test_data
 ``` 
-- Set body side, NMF stop criteria, input dir and output dir
+- Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input directory and output directory
 - Body side should be from the list of ['left', 'right']
 - NMF stop criteria should be from the list of ['BLF', 'R2=0.90', 'N=4']
+- Databases available: db_healthy_adults_8m, db_healthy_elderly_8m
+
 ### Run (octave-client)
 ```
->>> pepato_basic('test_data', 'test_data', 'left', {20, 400, 200, 8, 10, 'N=4'}, 'db/db_healthy_adults_8m.mat', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
+>>> pepato_basic('test_data', 'test_data', 'left', {30, 400, 200, 8, 20, 'BLF'}, 'db/db_healthy_adults_8m', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
 - Set input_folder, output_folder, body_side, config parameters, database filename and list of muscles (optional)
 - Format of path folder: path from current folder or full path
@@ -39,6 +41,7 @@ subject_N_run_R_speedVkmh_gaitEvents.yaml
 (full functionality, advanced GUI)
 ### Run
 ```
->>> PEPATO(8, 'left', 'cfg/initial_cfg.mat', 'db/db_healthy_adults_8m', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
+>>> PEPATO(8, 'left', 'cfg/initial_cfg', 'db/db_healthy_adults_8m', {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'});
 ``` 
-- Set GUI font size, body side, name of config file, name of database file and muscle list (optional)
+- Set GUI font size, body side, path to config file, path to database file and muscle list (optional)
+- Databases available for {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'} muscle list: `db_healthy_adults_8m` - adults, `db_healthy_elderly_8m` - elderly
