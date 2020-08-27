@@ -303,7 +303,6 @@ classdef PepatoVisual
                         if ~strcmp(params{j}, {'patterns_similarity', 'synergies_similarity'})
                             to_report(j, i) = {num2str(round(temp_{:}, n_round))}; 
                         else
-                            disp([j, i]); disp([[n_syn, n_ref], ref_idx]); sub2ind([n_syn, n_ref], 1:n_syn, ref_idx);
                             to_report(j, i) = {num2str(round(temp_{:}(sub2ind([n_syn, n_ref], 1:n_syn, ref_idx)), n_round))}; 
                         end
                     end
