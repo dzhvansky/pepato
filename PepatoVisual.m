@@ -291,7 +291,7 @@ classdef PepatoVisual
                 
                 n_syn = data.output_data(i).data.('muscle_synergy_number');
                 n_ref = size(data.output_data(i).data.('synergies_similarity'), 2);
-                ref_idx = data.output_data(i).data.('matching_standard_reference_index');
+                ref_idx = data.module_info{i}.('n_cluster');
                 
                 n_round = 1;
                 for j = 1:n_params
@@ -303,6 +303,7 @@ classdef PepatoVisual
                         if ~strcmp(params{j}, {'patterns_similarity', 'synergies_similarity'})
                             to_report(j, i) = {num2str(round(temp_{:}, n_round))}; 
                         else
+                            disp([j, i]); disp([[n_syn, n_ref], ref_idx]); sub2ind([n_syn, n_ref], 1:n_syn, ref_idx);
                             to_report(j, i) = {num2str(round(temp_{:}(sub2ind([n_syn, n_ref], 1:n_syn, ref_idx)), n_round))}; 
                         end
                     end
