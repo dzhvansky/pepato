@@ -402,8 +402,8 @@ classdef PepatoData
                 for i = 1 : length(obj.output_params)
                     param_name = obj.output_params{i};
                     param_type = data_types.(param_name);
-                    fprintf(fout, 'pi_name: %s\n', param_name);
-                    fprintf(fout, '\ttype: %s\n', param_type);
+                    fprintf(fout, '%s:\n', param_name);
+                    fprintf(fout, '    type: %s\n', param_type);
                 
                     n_conditions = length(condition_list);
                     param_output = cell(1, n_conditions);
@@ -439,7 +439,7 @@ classdef PepatoData
                         end
                     end
                     
-                    fprintf(fout, '\tvalue: [%s]\n', strjoin(param_output, ', '));
+                    fprintf(fout, '    value: [%s]\n', strjoin(param_output, ', '));
                 end
                 
                 fclose(fout);
