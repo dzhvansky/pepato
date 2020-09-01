@@ -42,7 +42,7 @@ docker build . -t pi_pepato
 Assuming folder `test_data` contains the input data, and folder `output` is already created (to contain output file):
 
 ```shell
-docker run --rm -v $PWD/test_data:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF /in /out
+docker run --rm -v $PWD/test_data:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m /in /out
 ```
 
 ## Acknowledgements

@@ -1,4 +1,4 @@
-#! /c/Octave/Octave-5.2.0/mingw64/bin/octave-cli -qf
+#!/usr/bin/octave -qf
 printf ('current directory: %s\n', pwd())
 
 [pepato_path, ~, ~] = fileparts(mfilename('fullpath'));
