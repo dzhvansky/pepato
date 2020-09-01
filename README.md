@@ -22,12 +22,12 @@ subject_N_run_R_speedVkmh_gaitEvents.yaml
 
 ## Usage
 ```
->>> ./run_pepato left BLF ./test_data ./test_data
+>>> ./run_pepato left BLF db_healthy_adults_8m ./test_data ./test_data
 ``` 
-
-- Set body side, NMF stop criteria, input dir and output dir
+- Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input directory and output directory
 - Body side should be from the list of ['left', 'right']
 - NMF stop criteria should be from the list of ['BLF', 'R2=0.90', 'N=4']
+- Databases available: db_healthy_adults_8m, db_healthy_elderly_8m
 
 ## Docker image 
 

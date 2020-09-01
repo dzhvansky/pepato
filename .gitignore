@@ -4,3 +4,4 @@ test_data/
 
 !db/module_ordering_8m_4.mat
 !db/db_healthy_adults_8m.mat
+!db/db_healthy_elderly_8m.mat

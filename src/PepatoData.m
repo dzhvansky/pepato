@@ -119,7 +119,7 @@ classdef PepatoData
                     0.9290    0.6940    0.1250
                     ];
             
-            obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa', 'muscle_module_similarity', 'matching_standard_reference_index', ...
+            obj.output_params = {'muscle_synergy_number', 'emg_reco_quality', 'pattern_fwhm', 'pattern_coa', 'patterns_similarity', 'synergies_similarity', 'matching_standard_reference_index', ...
                 'motor_pool_max_activation', 'motor_pool_fwhm', 'motor_pool_coact_index', 'motor_pool_similarity'};
             
             obj.clustering_mode = 'unique'; % options: 'unique', 'common' for condition dependent and independent clustering, respectively
@@ -261,7 +261,8 @@ classdef PepatoData
                 obj.output_data(i).data.('emg_reco_quality') = obj.nmf_r2{i}(n_synergies, 1);            
                 obj.output_data(i).data.('pattern_fwhm') = mean(fwhm, 1);
                 obj.output_data(i).data.('pattern_coa') = mean(coa, 1);
-                obj.output_data(i).data.('muscle_module_similarity') = [];
+                obj.output_data(i).data.('patterns_similarity') = [];
+                obj.output_data(i).data.('synergies_similarity') = [];
                 obj.output_data(i).data.('matching_standard_reference_index') = [];
             end
             
@@ -307,6 +308,7 @@ classdef PepatoData
         
         function obj = module_compare(obj, clustering)
             [~, ~, conditions] = get_trial_info(obj.filenames);
+            n_muscles = length(obj.muscle_list);
             
             for i = 1 : obj.n_files
                 if strcmp(obj.clustering_mode, 'unique')
@@ -321,29 +323,36 @@ classdef PepatoData
                 cluster_center = clustering.('data').(cluster_condition).('cluster_center');
                 scaler_mean = clustering.('data').(cluster_condition).('scaler_mean');
                 scaler_std = clustering.('data').(cluster_condition).('scaler_std');
+                pattern_reference = clustering.('data').(cluster_condition).('pattern_mean');
                 
                 [features, ~, ~, ~] = get_cluster_features(obj.muscle_weightings{i}', obj.basic_patterns{i}', scaler_mean, scaler_std);
                 n_rows = size(features, 1);
-                n_features = size(features, 2);
                 
                 cluster_idx = zeros(n_rows, 1);
                 nearest_cluster_dist = zeros(n_rows, 1);
                 muscle_module_similarity = zeros(n_rows, N_clusters);
+                synergies_similarity = zeros(n_rows, N_clusters);
+                patterns_similarity = zeros(n_rows, N_clusters);
+                
                 for j = 1:n_rows
-                    muscle_module_similarity(j, :) = sqrt(sum((cluster_center - repmat(features(j, :), N_clusters, 1)) .^ 2, 2) / n_features);
+                    muscle_module_similarity(j, :) = cluster_mean_distance(repmat(features(j, 1:n_muscles), N_clusters, 1), cluster_center(:, 1:n_muscles));
                     [nearest_cluster_dist(j), cluster_idx(j)] = min(muscle_module_similarity(j, :));
-                    
+                    synergies_similarity(j, :) = get_synergy_similarity(features(j, 1:n_muscles), cluster_center(:, 1:n_muscles));
+                    patterns_similarity(j, :) = get_pattern_similarity(obj.basic_patterns{i}(:, j)', pattern_reference);
                 end
-                include_mask = get_cluster_mask(features, cluster_idx, cluster_center, mean_threshold, max_threshold);
+                include_mask = get_cluster_mask(features(:, 1:n_muscles), cluster_idx, cluster_center(:, 1:n_muscles), mean_threshold, max_threshold);
                 
                 matching_standard_reference_index = cluster_idx';
                 matching_standard_reference_index(~include_mask') = NaN;
                 
-                module_info_ = cell2struct({include_mask', cluster_idx', nearest_cluster_dist'}, ...
-                    {'is_clustered', 'n_cluster', 'nearest_cluster_dist'}, 2);
+                module_info_ = cell2struct({include_mask', cluster_idx', nearest_cluster_dist', ...
+                    synergies_similarity(sub2ind([n_rows, N_clusters], 1:n_rows, cluster_idx')), ...
+                    patterns_similarity(sub2ind([n_rows, N_clusters], 1:n_rows, cluster_idx'))}, ...
+                    {'is_clustered', 'n_cluster', 'nearest_cluster_dist', 'best_synergy_similarity', 'best_pattern_similarity'}, 2);
                 obj.module_info{i} = module_info_;
                 
-                obj.output_data(i).data.('muscle_module_similarity') = muscle_module_similarity;
+                obj.output_data(i).data.('patterns_similarity') = patterns_similarity;
+                obj.output_data(i).data.('synergies_similarity') = synergies_similarity;
                 obj.output_data(i).data.('matching_standard_reference_index') = matching_standard_reference_index;
             end
             
@@ -376,7 +385,7 @@ classdef PepatoData
         
         
         function obj = write_output_yaml(obj, output_folder, condition_list)
-            data_types = cell2struct({'vector', 'vector', 'vector of vector', 'vector of vector', 'vector of matricies', 'vector of vector', ...
+            data_types = cell2struct({'vector', 'vector', 'vector of vector', 'vector of vector', 'vector of matricies', 'vector of matricies', 'vector of vector', ...
                 'vector of vector', 'vector of vector', 'vector', 'vector of vector'}, ...
                 obj.output_params, 2);
             
@@ -393,8 +402,8 @@ classdef PepatoData
                 for i = 1 : length(obj.output_params)
                     param_name = obj.output_params{i};
                     param_type = data_types.(param_name);
-                    fprintf(fout, 'pi_name: %s\n', param_name);
-                    fprintf(fout, '\ttype: %s\n', param_type);
+                    fprintf(fout, '%s:\n', param_name);
+                    fprintf(fout, '    type: %s\n', param_type);
                 
                     n_conditions = length(condition_list);
                     param_output = cell(1, n_conditions);
@@ -430,7 +439,7 @@ classdef PepatoData
                         end
                     end
                     
-                    fprintf(fout, '\tvalue: [%s]\n', strjoin(param_output, ', '));
+                    fprintf(fout, '    value: [%s]\n', strjoin(param_output, ', '));
                 end
                 
                 fclose(fout);
