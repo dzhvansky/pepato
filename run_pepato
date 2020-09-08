@@ -5,6 +5,7 @@ printf ('current directory: %s\n', pwd())
 addpath(fullfile(pepato_path, 'src'));
 
 arg_list = argv ();
+printf(arg_list{end-2});
 if nargin ~= 5
   printf ('ERROR: There should be 5 args. Side of the body, NMF stop criteria, name of the database from pepato/db directory, the dir containing the experiment data files (*emg.csv + *gaitEvents.yaml) and the dir where the results will be stored\n');
   printf ('Usage:\n');

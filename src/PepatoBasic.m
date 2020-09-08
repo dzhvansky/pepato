@@ -83,7 +83,7 @@ classdef PepatoBasic
                 end
                 
                 % write results to the output file
-                obj.data.write_output_yaml(obj.output_folder, obj.condition_list);
+                obj.data.write_output_yaml(obj.output_folder, obj.condition_list, 'multiple');
                 
                 fprintf('Analysis for subject "%s" done. The resultes are saved.\n', subject{:});
             end

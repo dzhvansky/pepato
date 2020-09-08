@@ -384,9 +384,12 @@ classdef PepatoData
         end
         
         
-        function obj = write_output_yaml(obj, output_folder, condition_list)
+        function obj = write_output_yaml(obj, output_folder, condition_list, write_mode)
+            if nargin < 4 || ~strcmp(write_mode, {'single', 'multiple'})
+                write_mode = 'single';
+            end
             data_types = cell2struct({'vector', 'vector', 'vector of vector', 'vector of vector', 'vector of matricies', 'vector of matricies', 'vector of vector', ...
-                'vector of vector', 'vector of vector', 'vector', 'vector of vector'}, ...
+                'matrix', 'matrix', 'vector', 'matrix'}, ...
                 obj.output_params, 2);
             
             [subjects, trials, conditions] = get_trial_info(obj.filenames);
@@ -395,15 +398,25 @@ classdef PepatoData
             
             for trial = unique(trials)
                 trial_idx = strcmp(trials, trial);
-                output_filename = strjoin({'subject', subject, 'run', trial{:}, 'output.yaml'}, '_');
-                
-                fout = fopen(fullfile(output_folder, output_filename), 'w');
                 
                 for i = 1 : length(obj.output_params)
                     param_name = obj.output_params{i};
                     param_type = data_types.(param_name);
-                    fprintf(fout, '%s:\n', param_name);
-                    fprintf(fout, '    type: %s\n', param_type);
+                    
+                    switch write_mode
+                        case 'single'
+                            fname_postfix = 'output';
+                            prefix = '    ';
+                        case 'multiple'
+                            fname_postfix = param_name;
+                            prefix = '';
+                    end
+                    
+                    output_filename = strjoin({'subject', subject, 'run', trial{:}, [fname_postfix, '.yaml']}, '_');
+                    fout = fopen(fullfile(output_folder, output_filename), 'a');
+                    if strcmp(write_mode, 'single')
+                        fprintf(fout, '%s:\n', param_name);
+                    end
                 
                     n_conditions = length(condition_list);
                     param_output = cell(1, n_conditions);
@@ -417,7 +430,7 @@ classdef PepatoData
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = num2str(param_value);
-                                case 'vector of vector'
+                                case {'matrix', 'vector of vector'}
                                     param_output{1, j} = sprintf('[%s]', strjoin(num2str2cell(param_value), ', '));
                                 case 'vector of matricies'
                                     matrix_rows = {};
@@ -431,7 +444,7 @@ classdef PepatoData
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = 'NaN';
-                                case 'vector of vector'
+                                case {'matrix', 'vector of vector'}
                                     param_output{1, j} = '[NaN]';
                                 case 'vector of matricies'
                                     param_output{1, j} = '[[NaN]]';
@@ -439,10 +452,11 @@ classdef PepatoData
                         end
                     end
                     
-                    fprintf(fout, '    value: [%s]\n', strjoin(param_output, ', '));
+                    fprintf(fout, [prefix 'type: %s\n'], param_type);
+                    fprintf(fout, [prefix 'value: [%s]\n'], strjoin(param_output, ', '));
+                    fclose(fout);
                 end
                 
-                fclose(fout);
             end
             
         end
