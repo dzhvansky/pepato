@@ -148,7 +148,7 @@ classdef DataBase
         function obj = input_names(obj)
             obj = obj.parent_obj.database.get_database_info();
             
-            [subject_, conditions_] = get_trial_info(obj.parent_obj.data.filenames);
+            [subject_, ~, conditions_] = get_trial_info(obj.parent_obj.data.filenames);
             
             obj.figure_handle = figure('name', 'Save analysis results', 'NumberTitle','off', 'Units', 'normal', 'OuterPosition', [.2 .2 .6 .6], 'WindowStyle', 'modal'); clf;
             set(obj.figure_handle, 'MenuBar', 'none'); set(obj.figure_handle, 'ToolBar', 'none');
