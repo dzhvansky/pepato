@@ -5,7 +5,7 @@ classdef PepatoBasic
         config;
         database_path;
         
-        input_folder;
+        file_list;
         output_folder;
         
         body_side;
@@ -13,19 +13,14 @@ classdef PepatoBasic
         condition_list = {'speed2kmh', 'speed4kmh', 'speed6kmh'};
         N_clusters = 4;
         
-        FileDat;
     end
     
     methods
         
-        function obj = init(obj, input_folder, output_folder, body_side, config_params, database_path, muscle_list)
-            in_ = what(input_folder);
-            obj.input_folder = in_.path;
-            out_ = what(output_folder);
-            obj.output_folder = out_.path;
-            
+        function obj = init(obj, file_list, output_folder, body_side, config_params, database_path, muscle_list)
+            obj.file_list = file_list;
+            obj.output_folder = output_folder;
             obj.body_side = body_side;
-            obj.config = [];
             obj.database_path = database_path;
             
             if nargin > 6
@@ -46,20 +41,17 @@ classdef PepatoBasic
                 obj.condition_list = condition_list;
             end
             
-            files = dir(fullfile(obj.input_folder, '*emg.csv'));
-            files = struct2cell(files);
-            obj.FileDat = files(1, :);
-            [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.input_folder, obj.condition_list);
+            [csv_files, yaml_csv, checked_] = check_filenames(obj.file_list, obj.condition_list);
             if ~checked_
-                fprintf('ERROR. CSV or YAML file names in "%s" input folder do not match PEPATO requirements, please see README.md file.\n', obj.input_folder);
+                fprintf('ERROR. CSV or YAML file names do not match PEPATO requirements, please see README.md file.\n');
             end
             
-            [subjects, ~, ~] = get_trial_info(obj.FileDat);
+            [subjects, ~, ~] = get_trial_info(csv_files);
             
             for subject = unique(subjects)
                 
                 subject_idx = strcmp(subjects, subject);
-                obj.data = obj.data.load_data(obj.FileDat(subject_idx), obj.input_folder, obj.body_side);
+                obj.data = obj.data.load_data(csv_files(subject_idx), yaml_csv(subject_idx), obj.body_side);
                 
                 obj.data = obj.data.spectra_filtering(cell(1, obj.data.n_files));
                 obj.data = obj.data.interpolated_envelope();

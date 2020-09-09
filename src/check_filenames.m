@@ -1,22 +1,19 @@
-function [FileDat, result] = check_filenames(FileDat, PathDat, condition_list)
+function [csv_files, yaml_files, result] = check_filenames(file_list, condition_list)
 
-if ~strcmp(FileDat, '')
-    if ischar(FileDat)
-        FileDat = {FileDat};
-    end
+if ~isempty(file_list)
     
-    N = length(FileDat);
-    
+    csv_files = sort(file_list(cell_contains(file_list, '_emg.csv')));
+    yaml_files = cell(size(csv_files));
+    N = length(csv_files);
     try
-        [~, trials, conditions] = get_trial_info(FileDat);
+        [~, trials, conditions] = get_trial_info(csv_files);
         result = sum(ismember(conditions, condition_list)) == N;
     catch
         result = false;
     end
     
     for i = 1:N
-        
-        f = FileDat(i);
+        f = get_filenames(csv_files(i));
         splitted = strsplit(f{:}, '_');
         
         % check filename parts
@@ -30,7 +27,10 @@ if ~strcmp(FileDat, '')
         % check corresponding yaml file exists
         splitted{end} = 'gaitEvents.yaml';
         yaml_file_name = strjoin(splitted, '_');
-        result = result && (exist(fullfile(PathDat, yaml_file_name), 'file') == 2);
+        yaml_idx = cell_contains(file_list, yaml_file_name);
+        result = result && (sum(yaml_idx) == 1);
+        
+        yaml_files{i} = file_list{yaml_idx};
     end
     
     % check all conditions are unique for each run

@@ -128,11 +128,11 @@ classdef PepatoData
         end
         
         
-        function obj = load_data(obj, FileDat, PathDat, body_side)
+        function obj = load_data(obj, csv_files, yaml_files, body_side)
             
             obj.config = obj.parent_obj.config.current_config;
             
-            obj = obj.files_(FileDat);
+            obj = obj.files_(csv_files);
                         
             obj.emg_data_raw = cell(1, obj.n_files);
             obj.emg_timestamp = cell(1, obj.n_files);
@@ -147,7 +147,7 @@ classdef PepatoData
             obj.emg_bounds = cell(1, obj.n_files);            
             
             for i = 1 : obj.n_files
-                [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.mov_data{i}, obj.mov_timestamp{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
+                [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.mov_data{i}, obj.mov_timestamp{i}] = load_csv_yaml_data(csv_files{i}, yaml_files{i}, body_side); 
                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, obj.unused_labels{i}] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
                 obj.colors{i} = obj.all_colors(muscle_index, :);
             end
@@ -399,6 +399,7 @@ classdef PepatoData
             for trial = unique(trials)
                 trial_idx = strcmp(trials, trial);
                 
+                wtite_flag = 'w';
                 for i = 1 : length(obj.output_params)
                     param_name = obj.output_params{i};
                     param_type = data_types.(param_name);
@@ -413,11 +414,12 @@ classdef PepatoData
                     end
                     
                     output_filename = strjoin({'subject', subject, 'run', trial{:}, [fname_postfix, '.yaml']}, '_');
-                    fout = fopen(fullfile(output_folder, output_filename), 'a');
+                    fout = fopen(fullfile(output_folder, output_filename), wtite_flag);
                     if strcmp(write_mode, 'single')
                         fprintf(fout, '%s:\n', param_name);
+                        wtite_flag = 'a';
                     end
-                
+                    
                     n_conditions = length(condition_list);
                     param_output = cell(1, n_conditions);
                     for j = 1: n_conditions
@@ -496,14 +498,9 @@ classdef PepatoData
         end
         
         
-        function obj = files_(obj, FileDat)
-        
-            obj.n_files = size(FileDat, 2);
-            obj.filenames = cell(1, obj.n_files);
-            
-            for i = 1 : obj.n_files
-                obj.filenames{1, i} = FileDat{1, i}(1:end-4); % cut file extension (csv by default)
-            end            
+        function obj = files_(obj, csv_files)
+            obj.n_files = length(csv_files);
+            obj.filenames = get_filenames(csv_files);
             
             params_struct = cell2struct(cell(size(obj.output_params)), obj.output_params, 2);
             files = cell(obj.n_files, 2);
