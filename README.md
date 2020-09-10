@@ -39,10 +39,10 @@ Run the following command in order to create the docker image:
 docker build . -t pi_pepato
 ```
 
-Assuming folder `test_data` contains the input data, and folder `output` is already created (to contain output file):
+Assuming data files have standardized names (see above), and folder `/out` is already created (to contain output file):
 
 ```shell
-docker run --rm -v $PWD/test_data:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m s2_emg.csv s2_gaitEvents.yaml s4_emg.csv s4_gaitEvents.yaml s6_emg.csv s6_gaitEvents.yaml /out
+docker run --rm -v $PWD/test_data:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m ./test_data/subject_0005_run_001_speed2kmh_emg.csv ./test_data/subject_0005_run_001_speed2kmh_gaitEvents.yaml ./test_data/subject_0005_run_001_speed4kmh_emg.csv ./test_data/subject_0005_run_001_speed4kmh_gaitEvents.yaml ./test_data/subject_0005_run_001_speed6kmh_emg.csv ./test_data/subject_0005_run_001_speed6kmh_gaitEvents.yaml /out
 ```
 
 ## Acknowledgements
