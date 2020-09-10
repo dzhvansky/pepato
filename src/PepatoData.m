@@ -388,7 +388,7 @@ classdef PepatoData
             if nargin < 4 || ~strcmp(write_mode, {'single', 'multiple'})
                 write_mode = 'single';
             end
-            data_types = cell2struct({'vector', 'vector', 'vector of vector', 'vector of vector', 'vector of matricies', 'vector of matricies', 'vector of vector', ...
+            data_types = cell2struct({'vector', 'vector', 'vector_of_vector', 'vector_of_vector', 'vector_of_matricies', 'vector_of_matricies', 'vector_of_vector', ...
                 'matrix', 'matrix', 'vector', 'matrix'}, ...
                 obj.output_params, 2);
             
@@ -432,9 +432,9 @@ classdef PepatoData
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = num2str(param_value);
-                                case {'matrix', 'vector of vector'}
+                                case {'matrix', 'vector_of_vector'}
                                     param_output{1, j} = sprintf('[%s]', strjoin(num2str2cell(param_value), ', '));
-                                case 'vector of matricies'
+                                case 'vector_of_matricies'
                                     matrix_rows = {};
                                     for k = 1:size(param_value, 1)
                                         matrix_rows = [matrix_rows, sprintf('[%s]', strjoin(num2str2cell(param_value(k, :)), ', '))];
@@ -446,9 +446,9 @@ classdef PepatoData
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = 'NaN';
-                                case {'matrix', 'vector of vector'}
+                                case {'matrix', 'vector_of_vector'}
                                     param_output{1, j} = '[NaN]';
-                                case 'vector of matricies'
+                                case 'vector_of_matricies'
                                     param_output{1, j} = '[[NaN]]';
                             end
                         end
