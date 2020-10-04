@@ -22,7 +22,7 @@ subject_N_run_R_speedVkmh_gaitEvents.yaml
 
 ## Usage
 ```
->>> ./run_pepato left BLF db_healthy_adults_8m ./test_data/subject_0005_run_001_speed2kmh_emg.csv ./test_data/subject_0005_run_001_speed2kmh_gaitEvents.yaml ./test_data/subject_0005_run_001_speed4kmh_emg.csv ./test_data/subject_0005_run_001_speed4kmh_gaitEvents.yaml ./test_data/subject_0005_run_001_speed6kmh_emg.csv ./test_data/subject_0005_run_001_speed6kmh_gaitEvents.yaml ./test_data
+>>> ./run_pepato left BLF db_healthy_adults_8m ./test_data/input/subject_0_run_0_speed2kmh_emg.csv ./test_data/input/subject_0_run_0_speed2kmh_gaitEvents.yaml ./test_data/input/subject_0_run_0_speed4kmh_emg.csv ./test_data/input/subject_0_run_0_speed4kmh_gaitEvents.yaml ./test_data/input/subject_0_run_0_speed6kmh_emg.csv ./test_data/input/subject_0_run_0_speed6kmh_gaitEvents.yaml ./test_data
 ``` 
 - Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input files (random order allowed) and output directory
 - Body side should be from the list of ['left', 'right']
@@ -42,7 +42,7 @@ docker build . -t pi_pepato
 Assuming data files have standardized names (see above), and folder `out` is already created (to contain output file):
 
 ```shell
-docker run --rm -v $PWD/test_data:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m /in/subject_0005_run_001_speed2kmh_emg.csv /in/subject_0005_run_001_speed2kmh_gaitEvents.yaml /in/subject_0005_run_001_speed4kmh_emg.csv /in/subject_0005_run_001_speed4kmh_gaitEvents.yaml /in/subject_0005_run_001_speed6kmh_emg.csv /in/subject_0005_run_001_speed6kmh_gaitEvents.yaml /out
+docker run --rm -v $PWD/test_data/input:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m /in/subject_0_run_0_speed2kmh_emg.csv /in/subject_0_run_0_speed2kmh_gaitEvents.yaml /in/subject_0_run_0_speed4kmh_emg.csv /in/subject_0_run_0_speed4kmh_gaitEvents.yaml /in/subject_0_run_0_speed6kmh_emg.csv /in/subject_0_run_0_speed6kmh_gaitEvents.yaml /out
 ```
 
 ## Acknowledgements

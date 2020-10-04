@@ -8,11 +8,14 @@ emg_data = csvread(emg_csv_file, 1, 0);
 emg_timestamp = emg_data(:, 1)';
 emg_framerate = round(length(emg_timestamp) / (emg_timestamp(end) - emg_timestamp(1)) * 1000); % in Hz -- from miliseconds
 
-index = ~cellfun(@isempty, regexp(column_names, ['_' body_side '$']));
+cols_splitted = cellfun(@(x) strsplit(x, '_'), column_names, 'UniformOutput', false);
+suffixes = cellfun(@(x) x{end}, cols_splitted, 'UniformOutput', false);
+index = cellfun(@(x) sum(strcmp(x, {body_side, body_side(1)})) > 0, suffixes);
 if sum(index) == 0
     index = 2:length(column_names);
 end
-emg_label = column_names(index);
+emg_label = cellfun(@(x) strjoin([x(1:end-1), 'left'], '_'), cols_splitted, 'UniformOutput', false);
+emg_label = emg_label(index);
 emg_data = emg_data(:, index);
 
 
