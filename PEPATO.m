@@ -28,7 +28,7 @@ if addpath_flag
         cellfun(@(x) addpath(x), path_list{1}', 'un', 0);
         
     catch
-        q = questdlg(sprintf('For PEPATO to work correctly, please add "%s" and its subdirectories to your MATLAB path and restart the application. \nThis needs to be done once, paths will be saved in .pepatopath file in the PEPATO home directory.\n\nAdd directory and save paths?', pepato_path), ...
+        q = questdlg(sprintf('For PEPATO to work correctly, please add "%s" and its subdirectories to your MATLAB path. \nThis needs to be done once, paths will be saved in .pepato file in the PEPATO home directory.\n\nAdd directory and save paths?', pepato_path), ...
             'PEPATO configuration', ...
             '<html><font size="4">Yes', '<html><font size="4">No', ...
             cell2struct({'none', 'modal', '<html><font size="4">Yes'}, {'Interpreter', 'WindowStyle', 'Default'}, 2));
@@ -38,7 +38,7 @@ if addpath_flag
                 fileID = fopen(fullfile(pepato_path, '.pepato'), 'w');
                 fprintf(fileID, '%s\n', dir_list{:});
                 fclose(fileID);
-                msgbox(sprintf('Path "%s" successfully added to MATLAB path. Paths saved to .pepatopath file\nWelcome to PEPATO!', pepato_path), 'INFO');
+                msgbox(sprintf('Path "%s" successfully added to MATLAB path. Paths saved to .pepato file\nWelcome to PEPATO!', pepato_path), 'INFO');
         end
     end
 end
