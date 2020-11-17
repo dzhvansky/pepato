@@ -11,25 +11,28 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 - Electromiography and Gait events files should be named the same
 - File name format (gait speed V should be from the list of [2, 4, 6] km per hour):
 
-```
+```term
 subject_N_run_R_speedVkmh_emg.csv
 subject_N_run_R_speedVkmh_gaitEvents.yaml
 ```
+
 ## Requirements
 
 - octave version >= 5.2.0
 - octave packages required: signal >= 1.4.1 statistics >= 1.4.1
 
 ## Usage
-```
+
+```term
 >>> ./run_pepato left BLF db_healthy_adults_8m ./test_data/input/subject_0_run_0_speed2kmh_emg.csv ./test_data/input/subject_0_run_0_speed2kmh_gaitEvents.yaml ./test_data/input/subject_0_run_0_speed4kmh_emg.csv ./test_data/input/subject_0_run_0_speed4kmh_gaitEvents.yaml ./test_data/input/subject_0_run_0_speed6kmh_emg.csv ./test_data/input/subject_0_run_0_speed6kmh_gaitEvents.yaml ./test_data
-``` 
+```
+
 - Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input files (random order allowed) and output directory
 - Body side should be from the list of ['left', 'right']
 - NMF stop criteria should be from the list of ['BLF', 'R2=0.90', 'N=4']
 - Databases available: db_healthy_adults_8m, db_healthy_elderly_8m
 
-## Docker image 
+## Docker image
 
 _(only tested under linux)_
 
@@ -39,7 +42,7 @@ Run the following command in order to create the docker image:
 docker build . -t pi_pepato
 ```
 
-Assuming data files have standardized names (see above), and folder `out` is already created (to contain output file):
+Assuming data files have standardized names (see above), and folder `output` is already created (to contain output file):
 
 ```shell
 docker run --rm -v $PWD/test_data/input:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m /in/subject_0_run_0_speed2kmh_emg.csv /in/subject_0_run_0_speed2kmh_gaitEvents.yaml /in/subject_0_run_0_speed4kmh_emg.csv /in/subject_0_run_0_speed4kmh_gaitEvents.yaml /in/subject_0_run_0_speed6kmh_emg.csv /in/subject_0_run_0_speed6kmh_gaitEvents.yaml /out

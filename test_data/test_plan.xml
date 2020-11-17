@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test_plan>
+<test pi_name="./run_pepato"
+      parameters="left BLF db_healthy_adults_8m /in/subject_0_run_0_speed2kmh_emg.csv /in/subject_0_run_0_speed2kmh_gaitEvents.yaml /in/subject_0_run_0_speed4kmh_emg.csv /in/subject_0_run_0_speed4kmh_gaitEvents.yaml /in/subject_0_run_0_speed6kmh_emg.csv /in/subject_0_run_0_speed6kmh_gaitEvents.yaml /out"
+      input_folder="input"
+      output_folder="output"/>
+</test_plan>
