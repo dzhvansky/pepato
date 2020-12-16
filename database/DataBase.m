@@ -90,7 +90,9 @@ classdef DataBase
                 end
                 
             catch except
-                obj.database_file = [obj.database_file(1:end-4) '_' rand_string_gen(3) '.mat'];
+                if exist(obj.database_file, 'file') == 2
+                    obj.database_file = [obj.database_file(1:end-4) '_' rand_string_gen(3) '.mat'];
+                end
                 obj.logger.message('WARNING', sprintf('Database does not exist or is corrupted. Comparison with reference will not be available. Creating empty database %s.', obj.database_file), except);
                 
                 
