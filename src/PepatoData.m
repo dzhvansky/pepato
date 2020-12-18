@@ -388,8 +388,9 @@ classdef PepatoData
             if nargin < 4 || ~strcmp(write_mode, {'single', 'multiple'})
                 write_mode = 'single';
             end
+            yaml_prefix = '  ';
             alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'};
-            data_types = cell2struct({'vector', 'vector', 'vector_of_vector', 'vector_of_vector', 'vector_of_matrix', 'vector_of_matricies', 'vector_of_vector', ...
+            data_types = cell2struct({'vector', 'vector', 'vector_of_vector', 'vector_of_vector', 'vector_of_matrix', 'vector_of_matrix', 'vector_of_vector', ...
                 'matrix', 'matrix', 'vector', 'matrix'}, ...
                 obj.output_params, 2);
             col_labels = cell2struct({{'sacral', 'lumbar'}, {'sacral', 'lumbar'}, {'sacral', 'lumbar'}}, ...
@@ -410,7 +411,7 @@ classdef PepatoData
                     switch write_mode
                         case 'single'
                             fname_postfix = 'output';
-                            prefix = '  ';
+                            prefix = yaml_prefix;
                         case 'multiple'
                             fname_postfix = param_name;
                             prefix = '';
@@ -471,8 +472,8 @@ classdef PepatoData
                             fprintf(fout, [prefix 'value:\n']);
                             for j = 1: n_conditions
                                 n_elements = length(strfind(param_output{1, j}, ', ')) + 1;
-                                fprintf(fout, [prefix '- label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_elements)), ', '));
-                                fprintf(fout, [prefix '  value: %s\n'], param_output{1, j});
+                                fprintf(fout, [prefix yaml_prefix '- label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_elements)), ', '));
+                                fprintf(fout, [prefix yaml_prefix yaml_prefix 'value: %s\n'], param_output{1, j});
                             end
                         case 'vector_of_matrix'
                             fprintf(fout, [prefix 'label: [%s]\n'], strjoin(conditions, ', '));
@@ -480,9 +481,9 @@ classdef PepatoData
                             for j = 1: n_conditions
                                 n_rows = length(strfind(param_output{1, j}, '[')) - 1;
                                 n_cols = (length(strfind(param_output{1, j}, ', ')) + 1) / n_rows;
-                                fprintf(fout, [prefix '- raw_label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_rows)), ', '));
-                                fprintf(fout, [prefix '  col_label: [%s]\n'], strjoin(strcat('ref_module_', num2str2cell(1:n_cols)), ', '));
-                                fprintf(fout, [prefix '  value: %s\n'], param_output{1, j});
+                                fprintf(fout, [prefix yaml_prefix '- raw_label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_rows)), ', '));
+                                fprintf(fout, [prefix yaml_prefix yaml_prefix 'col_label: [%s]\n'], strjoin(strcat('ref_module_', num2str2cell(1:n_cols)), ', '));
+                                fprintf(fout, [prefix yaml_prefix yaml_prefix 'value: %s\n'], param_output{1, j});
                             end
                     end
                     fclose(fout);
