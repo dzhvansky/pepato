@@ -1,2 +1,9 @@
 type: vector_of_vector
-value: [[3, 4, 2, NaN, NaN], [3, NaN, 2, NaN, NaN], [NaN, NaN, 2, 4, 3]]
+label: [speed2kmh, speed4kmh, speed6kmh]
+value:
+  - label: [module_a, module_b, module_c, module_d, module_e]
+    value: [3, 4, 2, NaN, NaN]
+  - label: [module_a, module_b, module_c, module_d, module_e]
+    value: [3, NaN, 2, NaN, NaN]
+  - label: [module_a, module_b, module_c, module_d, module_e]
+    value: [NaN, NaN, 2, 4, 3]

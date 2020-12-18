@@ -1,2 +1,4 @@
 type: matrix
+row_label: [speed2kmh, speed4kmh, speed6kmh]
+col_label: [sacral, lumbar]
 value: [[26, 8], [29, 9], [22, 12]]

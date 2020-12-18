@@ -1,2 +1,3 @@
 type: vector
+label: [speed2kmh, speed4kmh, speed6kmh]
 value: [5, 5, 5]

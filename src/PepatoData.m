@@ -388,7 +388,7 @@ classdef PepatoData
             if nargin < 4 || ~strcmp(write_mode, {'single', 'multiple'})
                 write_mode = 'single';
             end
-            yaml_prefix = '  ';
+            yaml_indent = '  ';
             alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'};
             data_types = cell2struct({'vector', 'vector', 'vector_of_vector', 'vector_of_vector', 'vector_of_matrix', 'vector_of_matrix', 'vector_of_vector', ...
                 'matrix', 'matrix', 'vector', 'matrix'}, ...
@@ -411,10 +411,10 @@ classdef PepatoData
                     switch write_mode
                         case 'single'
                             fname_postfix = 'output';
-                            prefix = yaml_prefix;
+                            indent = yaml_indent;
                         case 'multiple'
                             fname_postfix = param_name;
-                            prefix = '';
+                            indent = '';
                     end
                     
                     output_filename = strjoin({'subject', subject, 'run', trial{:}, [fname_postfix, '.yaml']}, '_');
@@ -458,32 +458,32 @@ classdef PepatoData
                         end
                     end
                     
-                    fprintf(fout, [prefix 'type: %s\n'], param_type);
+                    fprintf(fout, [indent 'type: %s\n'], param_type);
                     switch param_type
                         case 'vector'
-                            fprintf(fout, [prefix 'label: [%s]\n'], strjoin(conditions, ', '));
-                            fprintf(fout, [prefix 'value: [%s]\n'], strjoin(param_output, ', '));
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'value: [%s]\n'], strjoin(param_output, ', '));
                         case 'matrix'
-                            fprintf(fout, [prefix 'row_label: [%s]\n'], strjoin(conditions, ', '));
-                            fprintf(fout, [prefix 'col_label: [%s]\n'], strjoin(col_labels.(param_name), ', '));
-                            fprintf(fout, [prefix 'value: [%s]\n'], strjoin(param_output, ', '));
+                            fprintf(fout, [indent 'row_label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'col_label: [%s]\n'], strjoin(col_labels.(param_name), ', '));
+                            fprintf(fout, [indent 'value: [%s]\n'], strjoin(param_output, ', '));
                         case 'vector_of_vector'
-                            fprintf(fout, [prefix 'label: [%s]\n'], strjoin(conditions, ', '));
-                            fprintf(fout, [prefix 'value:\n']);
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'value:\n']);
                             for j = 1: n_conditions
                                 n_elements = length(strfind(param_output{1, j}, ', ')) + 1;
-                                fprintf(fout, [prefix yaml_prefix '- label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_elements)), ', '));
-                                fprintf(fout, [prefix yaml_prefix yaml_prefix 'value: %s\n'], param_output{1, j});
+                                fprintf(fout, [indent yaml_indent '- label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_elements)), ', '));
+                                fprintf(fout, [indent yaml_indent yaml_indent 'value: %s\n'], param_output{1, j});
                             end
                         case 'vector_of_matrix'
-                            fprintf(fout, [prefix 'label: [%s]\n'], strjoin(conditions, ', '));
-                            fprintf(fout, [prefix 'value:\n']);
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'value:\n']);
                             for j = 1: n_conditions
                                 n_rows = length(strfind(param_output{1, j}, '[')) - 1;
                                 n_cols = (length(strfind(param_output{1, j}, ', ')) + 1) / n_rows;
-                                fprintf(fout, [prefix yaml_prefix '- raw_label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_rows)), ', '));
-                                fprintf(fout, [prefix yaml_prefix yaml_prefix 'col_label: [%s]\n'], strjoin(strcat('ref_module_', num2str2cell(1:n_cols)), ', '));
-                                fprintf(fout, [prefix yaml_prefix yaml_prefix 'value: %s\n'], param_output{1, j});
+                                fprintf(fout, [indent yaml_indent '- raw_label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_rows)), ', '));
+                                fprintf(fout, [indent yaml_indent yaml_indent 'col_label: [%s]\n'], strjoin(strcat('ref_module_', num2str2cell(1:n_cols)), ', '));
+                                fprintf(fout, [indent yaml_indent yaml_indent 'value: %s\n'], param_output{1, j});
                             end
                     end
                     fclose(fout);
