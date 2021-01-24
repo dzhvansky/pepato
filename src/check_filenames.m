@@ -2,7 +2,8 @@ function [csv_files, yaml_files, result] = check_filenames(file_list, condition_
 
 if ~isempty(file_list)
     
-    csv_files = sort(file_list(cell_contains(file_list, '_emg.csv')));
+    % TODO  csv_files = sort(file_list(cell_contains(file_list, '_emg.csv')));
+    csv_files = sort(file_list(cell_contains(file_list, '_emg_')));
     yaml_files = cell(size(csv_files));
     N = length(csv_files);
     try
@@ -25,7 +26,8 @@ if ~isempty(file_list)
         end
         
         % check corresponding yaml file exists
-        splitted{end} = 'gaitEvents.yaml';
+%         TODO  splitted{end} = 'gaitEvents.yaml'; 
+        splitted{end-1} = 'gaitEvents';
         yaml_file_name = strjoin(splitted, '_');
         yaml_idx = cell_contains(file_list, yaml_file_name);
         result = result && (sum(yaml_idx) == 1);

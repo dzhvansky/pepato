@@ -12,8 +12,8 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 - File name format (gait speed V should be from the list of [2, 4, 6] km per hour):
 
 ```term
-subject_N_run_R_speedVkmh_emg.csv
-subject_N_run_R_speedVkmh_gaitEvents.yaml
+subject_N_run_R_emg_speedVkmh.csv
+subject_N_run_R_gaitEvents_speedVkmh.yaml
 ```
 
 ## Requirements
@@ -24,7 +24,7 @@ subject_N_run_R_speedVkmh_gaitEvents.yaml
 ## Usage
 
 ```term
->>> ./run_pepato left BLF db_healthy_adults_8m ./test_data/input/subject_0_run_0_speed2kmh_emg.csv ./test_data/input/subject_0_run_0_speed2kmh_gaitEvents.yaml ./test_data/input/subject_0_run_0_speed4kmh_emg.csv ./test_data/input/subject_0_run_0_speed4kmh_gaitEvents.yaml ./test_data/input/subject_0_run_0_speed6kmh_emg.csv ./test_data/input/subject_0_run_0_speed6kmh_gaitEvents.yaml ./test_data
+>>> ./run_pepato left BLF db_healthy_adults_8m ./test_data/input/subject_0_run_0_emg_speed2kmh.csv ./test_data/input/subject_0_run_0_gaitEvents_speed2kmh.yaml ./test_data/input/subject_0_run_0_emg_speed4kmh.csv ./test_data/input/subject_0_run_0_gaitEvents_speed4kmh.yaml ./test_data/input/subject_0_run_0_emg_speed6kmh.csv ./test_data/input/subject_0_run_0_gaitEvents_speed6kmh.yaml ./test_data
 ```
 
 - Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input files (random order allowed) and output directory
@@ -45,7 +45,7 @@ docker build . -t pi_pepato
 Assuming data files have standardized names (see above), and folder `output` is already created (to contain output file):
 
 ```shell
-docker run --rm -v $PWD/test_data/input:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m /in/subject_0_run_0_speed2kmh_emg.csv /in/subject_0_run_0_speed2kmh_gaitEvents.yaml /in/subject_0_run_0_speed4kmh_emg.csv /in/subject_0_run_0_speed4kmh_gaitEvents.yaml /in/subject_0_run_0_speed6kmh_emg.csv /in/subject_0_run_0_speed6kmh_gaitEvents.yaml /out
+docker run --rm -v $PWD/test_data/input:/in -v $PWD/output:/out pi_pepato ./run_pepato left BLF db_healthy_adults_8m /in/subject_0_run_0_emg_speed2kmh.csv /in/subject_0_run_0_gaitEvents_speed2kmh.yaml /in/subject_0_run_0_emg_speed4kmh.csv /in/subject_0_run_0_gaitEvents_speed4kmh.yaml /in/subject_0_run_0_emg_speed6kmh.csv /in/subject_0_run_0_gaitEvents_speed6kmh.yaml /out
 ```
 
 ## Acknowledgements

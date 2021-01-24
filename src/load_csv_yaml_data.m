@@ -31,7 +31,8 @@ emg_timestamp = emg_timestamp / 1000; % in seconds
 
 % gait cycles (if available)
 splitted = strsplit(gaitevents_yaml_file, '_');
-splitted{end} = 'cycles.csv';
+% TODO rename files  splitted{end} = 'cycles.csv';
+splitted{end-1} = 'cycles';
 cycles_filename = strjoin(splitted, '_');
 if exist(cycles_filename, 'file') == 2
     fid = fopen(cycles_filename, 'r'); 
