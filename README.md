@@ -42,6 +42,12 @@ Run the following command in order to create the docker image:
 docker build . -t pi_pepato
 ```
 
+Docker image can also be directly retrieved from the [Docker Hub](https://hub.docker.com/r/eurobenchtest/pi_pepato):
+
+```console
+docker pull eurobenchtest/pi_pepato
+```
+
 Assuming data files have standardized names (see above), and folder `output` is already created (to contain output file):
 
 ```shell
@@ -52,7 +58,7 @@ docker run --rm -v $PWD/test_data/input:/in -v $PWD/output:/out pi_pepato ./run_
 
 <a href="http://eurobench2020.eu">
   <img src="http://eurobench2020.eu/wp-content/uploads/2018/06/cropped-logoweb.png"
-       alt="rosin_logo" height="60" >
+       alt="eurobench_logo" height="60" >
 </a>
 
 Supported by Eurobench - the European robotic platform for bipedal locomotion benchmarking.
