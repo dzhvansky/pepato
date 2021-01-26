@@ -14,7 +14,7 @@ for i = 1:N
     
     subjects{1, i} = splitted{2};
     trials{1, i} = splitted{4};
-    conditions{1, i} = splitted{5};
+    conditions{1, i} = splitted{end};
 end
 
 end
