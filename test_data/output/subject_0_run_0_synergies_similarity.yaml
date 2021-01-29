@@ -1,0 +1,12 @@
+type: vector_of_matrix
+label: [speed2kmh, speed4kmh, speed6kmh]
+value:
+  - raw_label: [module_a, module_b, module_c, module_d, module_e]
+    col_label: [ref_module_1, ref_module_2, ref_module_3, ref_module_4]
+    value: [[-0.18539, -0.27288, 0.70767, -0.21017], [-0.24291, -0.36841, -0.1227, 0.97494], [-0.42741, 0.9812, -0.46653, -0.39156], [0.51297, -0.17908, -0.22201, -0.082591], [-0.2886, -0.24543, 0.53659, 0.072732]]
+  - raw_label: [module_a, module_b, module_c, module_d, module_e]
+    col_label: [ref_module_1, ref_module_2, ref_module_3, ref_module_4]
+    value: [[-0.062059, -0.38168, 0.80002, -0.13197], [0.30023, -0.39472, -0.27494, 0.33931], [-0.37687, 0.98615, -0.44068, -0.36156], [0.38413, -0.045886, -0.21086, -0.22699], [-0.44664, -0.20508, 0.13805, 0.65895]]
+  - raw_label: [module_a, module_b, module_c, module_d, module_e]
+    col_label: [ref_module_1, ref_module_2, ref_module_3, ref_module_4]
+    value: [[-0.095261, -0.34813, 0.74539, -0.18242], [0.59917, -0.1341, -0.25967, -0.18632], [-0.34826, -0.10287, -0.2336, 0.63209], [-0.19275, 0.92478, -0.4461, -0.4244], [-0.16249, -0.31064, -0.40601, 0.83066]]

@@ -1,0 +1,9 @@
+type: vector_of_vector
+label: [speed2kmh, speed4kmh, speed6kmh]
+value:
+  - label: [module_a, module_b, module_c, module_d, module_e]
+    value: [18.5, 14.5, 34, 36, 26]
+  - label: [module_a, module_b, module_c, module_d, module_e]
+    value: [9.5, 30.5, 29.5, 19.5, 30.5]
+  - label: [module_a, module_b, module_c, module_d, module_e]
+    value: [11.5, 16.5, 32, 22, 13.5]

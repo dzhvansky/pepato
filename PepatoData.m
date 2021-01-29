@@ -128,11 +128,11 @@ classdef PepatoData
         end
         
         
-        function obj = load_data(obj, FileDat, PathDat, body_side)
+        function obj = load_data(obj, csv_files, yaml_files, body_side)
             
             obj.config = obj.parent_obj.config.current_config;
             
-            obj = obj.files_(FileDat);
+            obj = obj.files_(csv_files);
                         
             obj.emg_data_raw = cell(1, obj.n_files);
             obj.emg_timestamp = cell(1, obj.n_files);
@@ -147,7 +147,7 @@ classdef PepatoData
             obj.emg_bounds = cell(1, obj.n_files);            
             
             for i = 1 : obj.n_files
-                [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.mov_data{i}, obj.mov_timestamp{i}] = load_csv_yaml_data(PathDat, FileDat{i}, body_side); 
+                [obj.emg_data_raw{i}, obj.emg_timestamp{i}, obj.emg_bounds{i}, obj.emg_label{i}, obj.emg_framerate{i}, obj.mov_data{i}, obj.mov_timestamp{i}] = load_csv_yaml_data(csv_files{i}, yaml_files{i}, body_side); 
                 [obj.emg_data_raw{i}, obj.emg_label{i}, muscle_index, obj.unused_labels{i}] = normalize_input(obj.emg_data_raw{i}, obj.emg_label{i}, obj.muscle_list, body_side);
                 obj.colors{i} = obj.all_colors(muscle_index, :);
             end
@@ -265,7 +265,6 @@ classdef PepatoData
                 obj.output_data(i).data.('synergies_similarity') = [];
                 obj.output_data(i).data.('matching_standard_reference_index') = [];
             end
-            
             obj.parent_obj.data = obj;
         end
         
@@ -384,10 +383,17 @@ classdef PepatoData
         end
         
         
-        function obj = write_output_yaml(obj, output_folder, condition_list)
-            data_types = cell2struct({'vector', 'vector', 'vector of vector', 'vector of vector', 'vector of matricies', 'vector of matricies', 'vector of vector', ...
-                'vector of vector', 'vector of vector', 'vector', 'vector of vector'}, ...
+        function obj = write_output_yaml(obj, output_folder, condition_list, write_mode)
+            if nargin < 4 || ~sum(strcmp(write_mode, {'single', 'multiple'}))
+                write_mode = 'single';
+            end
+            yaml_indent = '  ';
+            alphabet = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k'};
+            data_types = cell2struct({'vector', 'vector', 'vector_of_vector', 'vector_of_vector', 'vector_of_matrix', 'vector_of_matrix', 'vector_of_vector', ...
+                'matrix', 'matrix', 'vector', 'matrix'}, ...
                 obj.output_params, 2);
+            col_labels = cell2struct({{'sacral', 'lumbar'}, {'sacral', 'lumbar'}, {'sacral', 'lumbar'}}, ...
+                {'motor_pool_max_activation', 'motor_pool_fwhm', 'motor_pool_similarity'}, 2);
             
             [subjects, trials, conditions] = get_trial_info(obj.filenames);
             assert(length(unique(subjects))==1)
@@ -395,16 +401,28 @@ classdef PepatoData
             
             for trial = unique(trials)
                 trial_idx = strcmp(trials, trial);
-                output_filename = strjoin({'subject', subject, 'run', trial{:}, 'output.yaml'}, '_');
                 
-                fout = fopen(fullfile(output_folder, output_filename), 'w');
-                
+                wtite_flag = 'w';
                 for i = 1 : length(obj.output_params)
                     param_name = obj.output_params{i};
                     param_type = data_types.(param_name);
-                    fprintf(fout, '%s:\n', param_name);
-                    fprintf(fout, '    type: %s\n', param_type);
-                
+                    
+                    switch write_mode
+                        case 'single'
+                            fname_postfix = 'output';
+                            indent = yaml_indent;
+                        case 'multiple'
+                            fname_postfix = param_name;
+                            indent = '';
+                    end
+                    
+                    output_filename = strjoin({'subject', subject, 'run', trial{:}, [fname_postfix, '.yaml']}, '_');
+                    fout = fopen(fullfile(output_folder, output_filename), wtite_flag);
+                    if strcmp(write_mode, 'single')
+                        fprintf(fout, '%s:\n', param_name);
+                        wtite_flag = 'a';
+                    end
+                    
                     n_conditions = length(condition_list);
                     param_output = cell(1, n_conditions);
                     for j = 1: n_conditions
@@ -417,9 +435,9 @@ classdef PepatoData
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = num2str(param_value);
-                                case 'vector of vector'
+                                case {'matrix', 'vector_of_vector'}
                                     param_output{1, j} = sprintf('[%s]', strjoin(num2str2cell(param_value), ', '));
-                                case 'vector of matricies'
+                                case 'vector_of_matrix'
                                     matrix_rows = {};
                                     for k = 1:size(param_value, 1)
                                         matrix_rows = [matrix_rows, sprintf('[%s]', strjoin(num2str2cell(param_value(k, :)), ', '))];
@@ -431,18 +449,45 @@ classdef PepatoData
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = 'NaN';
-                                case 'vector of vector'
+                                case {'matrix', 'vector_of_vector'}
                                     param_output{1, j} = '[NaN]';
-                                case 'vector of matricies'
+                                case 'vector_of_matrix'
                                     param_output{1, j} = '[[NaN]]';
                             end
                         end
                     end
                     
-                    fprintf(fout, '    value: [%s]\n', strjoin(param_output, ', '));
+                    fprintf(fout, [indent 'type: %s\n'], param_type);
+                    switch param_type
+                        case 'vector'
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'value: [%s]\n'], strjoin(param_output, ', '));
+                        case 'matrix'
+                            fprintf(fout, [indent 'row_label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'col_label: [%s]\n'], strjoin(col_labels.(param_name), ', '));
+                            fprintf(fout, [indent 'value: [%s]\n'], strjoin(param_output, ', '));
+                        case 'vector_of_vector'
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'value:\n']);
+                            for j = 1: n_conditions
+                                n_elements = length(strfind(param_output{1, j}, ', ')) + 1;
+                                fprintf(fout, [indent yaml_indent '- label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_elements)), ', '));
+                                fprintf(fout, [indent yaml_indent yaml_indent 'value: %s\n'], param_output{1, j});
+                            end
+                        case 'vector_of_matrix'
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'value:\n']);
+                            for j = 1: n_conditions
+                                n_rows = length(strfind(param_output{1, j}, '[')) - 1;
+                                n_cols = (length(strfind(param_output{1, j}, ', ')) + 1) / n_rows;
+                                fprintf(fout, [indent yaml_indent '- raw_label: [%s]\n'], strjoin(strcat('module_', alphabet(1:n_rows)), ', '));
+                                fprintf(fout, [indent yaml_indent yaml_indent 'col_label: [%s]\n'], strjoin(strcat('ref_module_', num2str2cell(1:n_cols)), ', '));
+                                fprintf(fout, [indent yaml_indent yaml_indent 'value: %s\n'], param_output{1, j});
+                            end
+                    end
+                    fclose(fout);
                 end
                 
-                fclose(fout);
             end
             
         end
@@ -482,14 +527,9 @@ classdef PepatoData
         end
         
         
-        function obj = files_(obj, FileDat)
-        
-            obj.n_files = size(FileDat, 2);
-            obj.filenames = cell(1, obj.n_files);
-            
-            for i = 1 : obj.n_files
-                obj.filenames{1, i} = FileDat{1, i}(1:end-4); % cut file extension (csv by default)
-            end            
+        function obj = files_(obj, csv_files)
+            obj.n_files = length(csv_files);
+            obj.filenames = get_filenames(csv_files);
             
             params_struct = cell2struct(cell(size(obj.output_params)), obj.output_params, 2);
             files = cell(obj.n_files, 2);

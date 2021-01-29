@@ -76,7 +76,7 @@ classdef DataBase
                 end
                 
                 columns = obj.module_database.Properties.VariableNames;
-                idx_weights = find_cell_contains(columns, '_weight');
+                idx_weights = cell_contains(columns, '_weight');
                 muscle_list = cellfun (@(x) x(1:end-7), columns(idx_weights), 'un', 0);
                 init_list = obj.parent_obj.data.muscle_list;
                 try

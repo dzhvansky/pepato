@@ -1,4 +1,4 @@
-function pepato_basic(input_folder, output_folder, body_side, config_params, database_path, muscle_list)
+function pepato_basic(file_list, output_folder, body_side, config_params, database_path, muscle_list)
 
 if nargin < 6
     muscle_list = [];
@@ -45,20 +45,20 @@ if addpath_flag
         cellfun(@(x) addpath(x), path_list{1}', 'un', 0);
         
     catch
-        q = input(sprintf('For PEPATO to work correctly, please add "%s" and its subdirectories to your MATLAB path and restart the application. \nThis needs to be done once, paths will be saved in .pepatopath file in the PEPATO home directory.\nAdd directory and save paths? [y/n] ', pepato_path_), 's');
+        q = input(sprintf('For PEPATO to work correctly, please add "%s" and its subdirectories to your MATLAB path and restart the application. \nThis needs to be done once, paths will be saved in .pepato file in the PEPATO home directory.\nAdd directory and save paths? [y/n] ', pepato_path_), 's');
         switch q
             case 'y'
                 cellfun(@(x) addpath(x), dir_list, 'un', 0);
                 fileID = fopen(fullfile(pepato_path, '.pepato'), 'w');
                 fprintf(fileID, '%s\n', dir_list{:});
                 fclose(fileID);
-                fprintf('Path "%s" successfully added to MATLAB path. Paths saved to .pepatopath file.\nWelcome to PEPATO!\n', pepato_path);
+                fprintf('Path "%s" successfully added to MATLAB path. Paths saved to .pepato file.\nWelcome to PEPATO!\n', pepato_path);
         end
     end
 end
 
 pepato = PepatoBasic()...
-    .init(input_folder, output_folder, body_side, config_params, database_path, muscle_list)...
+    .init(file_list, output_folder, body_side, config_params, database_path, muscle_list)...
     .pipeline({'speed2kmh', 'speed4kmh', 'speed6kmh'}, 4);
 
 end

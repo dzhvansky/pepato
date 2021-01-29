@@ -12,8 +12,8 @@ end
 
 columns = database.Properties.VariableNames;
 
-sacral_idx = find_cell_contains(columns, 'sacral_pat_');
-lumbar_idx = find_cell_contains(columns, 'lumbar_pat_');
+sacral_idx = cell_contains(columns, 'sacral_pat_');
+lumbar_idx = cell_contains(columns, 'lumbar_pat_');
 
 [~, unique_idx] = unique(database.('condition'));
 conditions = database.('condition')(unique_idx)';

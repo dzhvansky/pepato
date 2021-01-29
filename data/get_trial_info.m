@@ -1,6 +1,7 @@
-function [subjects, trials, conditions] = get_trial_info(filenames)
+function [subjects, trials, conditions] = get_trial_info(file_list)
 
-% filenames should be cell array of filenames without extension
+% file_list --> to filenames without extension
+filenames = get_filenames(file_list);
 N = length(filenames);
 
 subjects = cell(1, N);
@@ -13,7 +14,7 @@ for i = 1:N
     
     subjects{1, i} = splitted{2};
     trials{1, i} = splitted{4};
-    conditions{1, i} = splitted{5};
+    conditions{1, i} = splitted{end};
 end
 
 end

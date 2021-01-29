@@ -28,8 +28,8 @@ end
 
 
 columns = database.Properties.VariableNames;
-idx_weights = find_cell_contains(columns, '_weight');
-idx_patterns = find_cell_contains(columns, 'pattern_[\d]+', '-regexp');
+idx_weights = cell_contains(columns, '_weight');
+idx_patterns = cell_contains(columns, 'pattern_');
 n_muscles = length(idx_weights);
 n_points = length(idx_patterns);
 

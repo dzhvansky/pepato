@@ -235,17 +235,22 @@ classdef PepatoApp < handle
                     
                     switch obj.load_type
                         case 'raw'
-                            file_ext = ['emg' obj.file_extension]; multiselect = 'on';
+                            file_ext = ['_emg_*' obj.file_extension]; multiselect = 'on';
                         case {'preproc', 'repro'}
                             file_ext = '.mat'; multiselect = 'off';                                               
                     end
                     
                     try
                         [obj.FileDat, obj.PathDat] = uigetfile(['/cd/*' file_ext], 'Open EMG data', 'Multiselect', multiselect);
-
+                        
                         switch obj.load_type
                             case 'raw'
-                                [obj.FileDat, checked_] = check_filenames(obj.FileDat, obj.PathDat, obj.condition_list);
+                                if ischar(obj.FileDat)
+                                    obj.FileDat = {obj.FileDat};
+                                end
+                                obj.FileDat = sort(obj.FileDat);
+                                
+                                [csv_files, yaml_files, checked_] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list);
                                 [subjects, ~, ~] = get_trial_info(obj.FileDat);
                                 if checked_ && (length(unique(subjects)) == 1)
                                     obj.logger.message('INFO', ['Files ' sprintf('%s, ', obj.FileDat{:}) 'uploaded from the folder ' obj.PathDat]);
@@ -269,18 +274,10 @@ classdef PepatoApp < handle
 
                                     obj.FileDat = loaded.input.FileDat;
                                     obj.PathDat = loaded.input.PathDat;
+                                    [csv_files, yaml_files, ~] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list);
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
-                                    
-                                    % TODO: ??????? try catch -- delete
-                                    % after using preproc files for
-                                    % database
-                                    try
-                                        obj.body_side = loaded.input.body_side;
-                                    catch
-                                        filename_splitted = strsplit(preproc_filename, '_');
-                                        obj.body_side = filename_splitted{end-1};
-                                    end
+                                    obj.body_side = loaded.input.body_side;
 
                                     obj.visual.time_bounds = loaded.input.time_bounds;
                                     obj.visual.selected_muscles = loaded.input.selected_muscles;
@@ -307,6 +304,7 @@ classdef PepatoApp < handle
 
                                     obj.FileDat = loaded.input.FileDat;
                                     obj.PathDat = loaded.input.PathDat;
+                                    [csv_files, yaml_files, ~] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list);
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
                                     
@@ -328,7 +326,7 @@ classdef PepatoApp < handle
                         switch obj.load_type
                             case {'raw', 'repro'}
                                 try
-                                    obj.data.load_data(obj.FileDat, obj.PathDat, obj.body_side);
+                                    obj.data.load_data(csv_files, yaml_files, obj.body_side);
                                     if sum(cellfun(@isempty, obj.data.unused_labels)) < obj.data.n_files
                                         for i = 1:obj.data.n_files
                                             if ~isempty(obj.data.unused_labels{i})
@@ -469,11 +467,11 @@ classdef PepatoApp < handle
             end
             
             obj.data.muscle_synergies();
-            try
+%             try
                 obj.data.module_compare(obj.database.clustering);
-            catch except
-                obj.logger.message('WARNING', 'Modules comparison with reference is not available. Database error.', except);
-            end
+%             catch except
+%                 obj.logger.message('WARNING', 'Modules comparison with reference is not available. Database error.', except);
+%             end
             obj.visual.draw_muscle_synergies(obj.data, obj.database.clustering);
             obj.logger.message('INFO', sprintf('Synergy analysis done. NMF stop criteria: "%s"', obj.data.config.nnmf_stop_criterion{:}));
             

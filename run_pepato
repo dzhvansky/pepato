@@ -9,18 +9,20 @@ dir_list = [dir_list, pepato_path];
 cellfun(@(x) addpath(x), dir_list, 'un', 0);
 
 arg_list = argv ();
-if nargin ~= 5
-  printf ('ERROR: There should be 5 args. Side of the body, NMF stop criteria, name of the database from pepato/db directory, the dir containing the experiment data files (*emg.csv + *gaitEvents.yaml) and the dir where the results will be stored\n');
+if nargin < 6
+  printf ('ERROR: There should be more then 5 args. Side of the body, NMF stop criteria, name of the database from pepato/db directory, experiment data files (*emg.csv + *gaitEvents.yaml for each speed) and the dir where the results will be stored\n');
   printf ('Usage:\n');
-  printf ('\t./run_pepato body_side nnmf_stop_criteria db_name data_dir result_dir\n\n');
+  printf ('\t./run_pepato body_side nnmf_stop_criteria db_name data_emg_speed2kmh.csv data_gaitEvents_speed2kmh.yaml ... result_dir\n\n');
   exit(127);
 end
 
 printf ('body side: %s\n', arg_list{1});
 printf ('NMF stop criteria: %s\n', arg_list{2});
 printf ('database name: %s\n', arg_list{3});
-printf ('data dir: %s\n', arg_list{4});
-printf ('result dir: %s\n', arg_list{5});
+printf('file list: [');
+printf ('%s, ', arg_list{4:end-1});
+printf(']\n');
+printf ('result dir: %s\n', arg_list{end});
 
 for package_name = {'signal', 'statistics'}
     pkg('load', package_name{:});
@@ -33,5 +35,5 @@ db_path = fullfile(pepato_path, 'db', arg_list{3});
 muscle_list = {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'};
 
 PepatoBasic()...
-    .init(arg_list{4}, arg_list{5}, arg_list{1}, config, db_path, muscle_list)...
+    .init(arg_list(4:end-1), arg_list{end}, arg_list{1}, config, db_path, muscle_list)...
     .pipeline({'speed2kmh', 'speed4kmh', 'speed6kmh'}, 4);
