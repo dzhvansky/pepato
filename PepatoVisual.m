@@ -78,6 +78,7 @@ classdef PepatoVisual
                 obj.second_level_tab_group{i}.SelectedTab = obj.second_level_tab_handle(n_handle, i);
                 
                 fig_emg(obj.second_level_tab_handle(n_handle, i), data.colors{i}, data.emg_data_raw{i}, data.emg_timestamp{i}, data.emg_bounds{i}, data.emg_framerate{i}, data.emg_label{i}, data.mov_data{i}, data.mov_timestamp{i});
+                obj.selected_muscles{i} = 1 : length(data.emg_label{i});
             end
             
             obj.parent_obj.visual = obj;
