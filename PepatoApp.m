@@ -72,7 +72,7 @@ classdef PepatoApp < handle
             obj.figure_handle = figure('name', 'PEPATO application', 'NumberTitle', 'off', 'Units', 'normal', 'OuterPosition', [0 0 1 1]); clf;
             obj.figure_handle.Units = 'characters';
             
-            if verLessThan('matlab','9.5')
+            if verLessThan('matlab', '9.5')
                 drawnow;
                 set(get(obj.figure_handle, 'JavaFrame'), 'Maximized', 1);
             else
@@ -467,11 +467,11 @@ classdef PepatoApp < handle
             end
             
             obj.data.muscle_synergies();
-%             try
+            try
                 obj.data.module_compare(obj.database.clustering);
-%             catch except
-%                 obj.logger.message('WARNING', 'Modules comparison with reference is not available. Database error.', except);
-%             end
+            catch except
+                obj.logger.message('WARNING', 'Modules comparison with reference is not available. Database error.', except);
+            end
             obj.visual.draw_muscle_synergies(obj.data, obj.database.clustering);
             obj.logger.message('INFO', sprintf('Synergy analysis done. NMF stop criteria: "%s"', obj.data.config.nnmf_stop_criterion{:}));
             
