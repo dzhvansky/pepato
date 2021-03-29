@@ -36,7 +36,7 @@ classdef ProgressBar < handle
         function update(obj, n)
             waitbar(n / obj.n_total, obj.bar_handle, sprintf('Stage: %d/%d', n, obj.n_total));
             pause(0.1);
-            if n == obj.n_total
+            if n >= obj.n_total
                 obj.close();
             end
         end

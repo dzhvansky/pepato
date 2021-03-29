@@ -250,7 +250,10 @@ classdef PepatoApp < handle
                                 end
                                 obj.FileDat = sort(obj.FileDat);
                                 
-                                [csv_files, yaml_files, checked_] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list);
+                                [csv_files, yaml_files, checked_, csv_header] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list, obj.data.muscle_list);
+                                if ~csv_header
+                                    obj.logger.message('ERROR', 'CSV files do not have all the required columns. %s', csv_header);
+                                end
                                 [subjects, ~, ~] = get_trial_info(obj.FileDat);
                                 if checked_ && (length(unique(subjects)) == 1)
                                     obj.logger.message('INFO', ['Files ' sprintf('%s, ', obj.FileDat{:}) 'uploaded from the folder ' obj.PathDat]);
@@ -274,7 +277,7 @@ classdef PepatoApp < handle
 
                                     obj.FileDat = loaded.input.FileDat;
                                     obj.PathDat = loaded.input.PathDat;
-                                    [csv_files, yaml_files, ~] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list);
+                                    [csv_files, yaml_files, ~, ~] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list, loaded.input.muscle_list);
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
                                     obj.body_side = loaded.input.body_side;
@@ -304,7 +307,7 @@ classdef PepatoApp < handle
 
                                     obj.FileDat = loaded.input.FileDat;
                                     obj.PathDat = loaded.input.PathDat;
-                                    [csv_files, yaml_files, ~] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list);
+                                    [csv_files, yaml_files, ~, ~] = check_filenames(cellfun(@(x) fullfile(obj.PathDat, x), obj.FileDat, 'UniformOutput', false), obj.condition_list, loaded.input.muscle_list);
                                     
                                     obj.proc_pipeline = loaded.input.proc_pipeline;
                                     
@@ -363,7 +366,12 @@ classdef PepatoApp < handle
                                             end                                  
                                     end
                                 catch except
-                                    obj.logger.message('ERROR', ['Reproduce PEPATO analysis: interrupted, files ' sprintf('%s, ', obj.FileDat{:}) 'are not available in the folder ' obj.PathDat], except);
+                                    switch obj.load_type
+                                        case 'raw'
+                                            obj.logger.message('ERROR', ['Loading raw files: ' sprintf('%s, ', obj.FileDat{:}) 'from the folder ' obj.PathDat], except);
+                                        case 'repro'
+                                            obj.logger.message('ERROR', ['Reproduce PEPATO analysis: interrupted, files ' sprintf('%s, ', obj.FileDat{:}) 'are not available in the folder ' obj.PathDat], except);
+                                    end
                                 end
                                 
                             case 'preproc'

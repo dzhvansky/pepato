@@ -43,7 +43,10 @@ classdef PepatoBasic
                 obj.condition_list = condition_list;
             end
             
-            [csv_files, yaml_files, checked_] = check_filenames(obj.file_list, obj.condition_list);
+            [csv_files, yaml_files, checked_, csv_header] = check_filenames(obj.file_list, obj.condition_list, obj.muscle_list);
+            if ~csv_header
+                fprintf('ERROR. CSV files do not have all the required columns. %s\n', csv_header);
+            end
             
             if strcmp(obj.file_order, 'standard') && ~checked_
                 csv_files = obj.file_list([1 3 5]);

@@ -14,7 +14,7 @@ index = cellfun(@(x) sum(strcmp(x, {body_side, body_side(1)})) > 0, suffixes);
 if sum(index) == 0
     index = 2:length(column_names);
 end
-emg_label = cellfun(@(x) strjoin([x(1:end-1), 'left'], '_'), cols_splitted, 'UniformOutput', false);
+emg_label = cellfun(@(x) strjoin([x(1:end-1), body_side], '_'), cols_splitted, 'UniformOutput', false);
 emg_label = emg_label(index);
 emg_data = emg_data(:, index);
 
