@@ -244,6 +244,8 @@ classdef PepatoData
             
             obj.module_info = cell(1, obj.n_files);
             
+            progress = ProgressBar('Muscle modules computing ...', obj.n_files, 'yes', 'no');
+            
             for i = 1 : obj.n_files
                 N_points = obj.config.n_points;
                 emg_enveloped_normalized = obj.emg_enveloped{i} ./ repelem(obj.emg_max{i}, size(obj.emg_enveloped{i}, 1), 1);
@@ -264,8 +266,9 @@ classdef PepatoData
                 obj.output_data(i).data.('patterns_similarity') = [];
                 obj.output_data(i).data.('synergies_similarity') = [];
                 obj.output_data(i).data.('matching_standard_reference_index') = [];
+                
+                progress.update(i);
             end
-            
             obj.parent_obj.data = obj;
         end
         
@@ -277,6 +280,8 @@ classdef PepatoData
             obj.motorpools_activation_avg = cell(1, obj.n_files);
             obj.sacral = cell(1, obj.n_files);
             obj.lumbar = cell(1, obj.n_files);
+            
+            progress = ProgressBar('Spinal maps computing ...', obj.n_files, 'yes', 'no');
             
             for i = 1 : obj.n_files
                 [emg_mean, ~, ~, ~] = emg_cycle_averaging(obj.emg_enveloped{i}, N_points, 2);
@@ -300,6 +305,8 @@ classdef PepatoData
                 obj.output_data(i).data.('motor_pool_fwhm') = [sacral_fwhm lumbar_fwhm];
                 obj.output_data(i).data.('motor_pool_coact_index') = CI;
                 obj.output_data(i).data.('motor_pool_similarity') = [];
+                
+                progress.update(i);
             end
             
             obj.parent_obj.data = obj;
@@ -385,7 +392,7 @@ classdef PepatoData
         
         
         function obj = write_output_yaml(obj, output_folder, condition_list, write_mode)
-            if nargin < 4 || ~strcmp(write_mode, {'single', 'multiple'})
+            if nargin < 4 || ~sum(strcmp(write_mode, {'single', 'multiple'}))
                 write_mode = 'single';
             end
             yaml_indent = '  ';

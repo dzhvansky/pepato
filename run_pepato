@@ -1,4 +1,4 @@
-#!/usr/bin/octave -qf
+#!/c/Octave/Octave-5.2.0/mingw64/bin/octave-cli -qf
 printf ('current directory: %s\n', pwd())
 
 [pepato_path, ~, ~] = fileparts(mfilename('fullpath'));
@@ -26,10 +26,10 @@ end
 
 % config = {high_pass, low_pass, norm_points, n_module_max, nnmf_replicates, nnmf_stop_criterion}
 % nnmf_stop_criterion must be from the list ['BLF', 'N=4', 'R2=0.90']
-config = {30, 400, 200, 8, 50, arg_list{2}};
+config = {30, 400, 200, 8, 5, arg_list{2}};
 db_path = fullfile(pepato_path, 'db', arg_list{3});
 muscle_list = {'BiFe', 'SeTe', 'VaMe', 'VaLa', 'ReFe', 'TiAn', 'GaMe', 'Sol'};
 
 PepatoBasic()...
-    .init(arg_list(4:end-1), arg_list{end}, arg_list{1}, config, db_path, muscle_list)...
+    .init(arg_list(4:end-1), 'standard', arg_list{end}, arg_list{1}, config, db_path, muscle_list)...
     .pipeline({'speed2kmh', 'speed4kmh', 'speed6kmh'}, 4);

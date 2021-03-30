@@ -15,7 +15,14 @@ end
 nmf_options = cell2struct({[], [], [50 10 1e-5], 1000, false, false, true}, ...
     {'isynfiltcoef', 'synfiltcoef_filter_par', 'niter', 'nmaxiter', 'print', 'plot', 'updateW'}, 2);
 R_best = -1;
-rand('state', 0);
+
+isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0;
+if isOctave
+    rand('state', 0);
+else
+    rng('default');
+end
+
 for i = 1:replicates
     W0 = rand(n_emg, n_synergies);
     C0 = rand(n_synergies, n_samples); 

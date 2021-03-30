@@ -6,6 +6,7 @@ classdef PepatoBasic
         database_path;
         
         file_list;
+        file_order;
         output_folder;
         
         body_side;
@@ -17,8 +18,9 @@ classdef PepatoBasic
     
     methods
         
-        function obj = init(obj, file_list, output_folder, body_side, config_params, database_path, muscle_list)
+        function obj = init(obj, file_list, file_order, output_folder, body_side, config_params, database_path, muscle_list)
             obj.file_list = file_list;
+            obj.file_order = file_order;
             obj.output_folder = output_folder;
             obj.body_side = body_side;
             obj.database_path = database_path;
@@ -41,17 +43,31 @@ classdef PepatoBasic
                 obj.condition_list = condition_list;
             end
             
-            [csv_files, yaml_csv, checked_] = check_filenames(obj.file_list, obj.condition_list);
-            if ~checked_
-                fprintf('ERROR. CSV or YAML file names do not match PEPATO requirements, please see README.md file.\n');
+            [csv_files, yaml_files, checked_, csv_header] = check_filenames(obj.file_list, obj.condition_list, obj.muscle_list);
+            if ~csv_header
+                fprintf('ERROR. CSV files do not have all the required columns. %s\n', csv_header);
             end
             
-            [subjects, ~, ~] = get_trial_info(csv_files);
+            if strcmp(obj.file_order, 'standard') && ~checked_
+                csv_files = obj.file_list([1 3 5]);
+                yaml_files = obj.file_list([2 4 6]);
+                subjects = {'unknown', 'unknown', 'unknown'};
+            else
+                if ~checked_
+                    fprintf('ERROR. CSV or YAML file names do not match PEPATO requirements, please see README.md file.\n');
+                end
+
+                [subjects, ~, ~] = get_trial_info(csv_files);
+            end
             
             for subject = unique(subjects)
                 
                 subject_idx = strcmp(subjects, subject);
-                obj.data = obj.data.load_data(csv_files(subject_idx), yaml_csv(subject_idx), obj.body_side);
+                obj.data = obj.data.load_data(csv_files(subject_idx), yaml_files(subject_idx), obj.body_side);
+                
+                if strcmp(subject, 'unknown')
+                    obj.data.filenames = {'subject_unknown_run_0_emg_speed2kmh', 'subject_unknown_run_0_emg_speed4kmh', 'subject_unknown_run_0_emg_speed6kmh'};
+                end
                 
                 obj.data = obj.data.spectra_filtering(cell(1, obj.data.n_files));
                 obj.data = obj.data.interpolated_envelope();
