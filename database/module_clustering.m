@@ -28,8 +28,8 @@ end
 
 
 columns = database.Properties.VariableNames;
-idx_weights = cell_contains(columns, '_weight');
-idx_patterns = cell_contains(columns, 'pattern_');
+idx_weights = find(cell_contains(columns, '_weight'));
+idx_patterns = find(cell_contains(columns, 'pattern_[\d]+'));
 n_muscles = length(idx_weights);
 n_points = length(idx_patterns);
 
@@ -66,6 +66,7 @@ for j = 1:n_conditions
     
     weights = database{row_idx, idx_weights}; 
     patterns = database{row_idx, idx_patterns};
+    assignin('base', 'patterns', patterns)
     
     [features, norm_patterns, output.('data').(condition).('scaler_mean'), ...
         output.('data').(condition).('scaler_std')] = get_cluster_features(weights, patterns);
@@ -75,6 +76,7 @@ for j = 1:n_conditions
     if ~isempty(ordering)
         [cluster_idx, cluster_center] = get_cluster_order(cluster_idx, cluster_center, ordered_modules);
     end
+    
     % cluster_center_orig = cluster_center .* repmat(scaler_std, N_clusters, 1) + repmat(scaler_mean, N_clusters, 1);
     include_mask = get_cluster_mask(features(:, 1:n_muscles), cluster_idx, cluster_center(:, 1:n_muscles), mean_threshold, max_threshold); 
     output.('data').(condition).('cluster_center') = cluster_center;

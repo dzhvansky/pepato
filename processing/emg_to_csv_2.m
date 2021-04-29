@@ -5,10 +5,10 @@ addpath(genpath('D:\!Work\Science\PEPATO\btk'))
 Path2datafiles = [PathDat FileDat];
 
 disp(FileDat);
-N = input('Input subject`s number N: ');
+N = input('Input subject`s number N: ', 's');
 R = input('Input run number R: ');
 condition = input('Input condition: ', 's');
-output_name = strjoin({'subject', sprintf('%04d', N), 'run', sprintf('%03d', R), condition}, '_');
+output_name = strjoin({'subject', sprintf('%s', N), 'run', sprintf('%03d', R)}, '_');
 
 
 if strcmp(Path2datafiles(end-2 : end), 'mat')
@@ -36,12 +36,13 @@ end
 % 14 - BiFe_right, 18 - GaLa_right, 17 - GaMe_right, 8 - GlMa_right, 
 % 20 - PeLo_right, 13 - ReFe_right, 22 - SeTe_right, 19 - Sol_right, 
 % 10 - TeFa_right, 21 - TiAn_right, 11 - VaLa_right, 12 - VaMe_right
-emg_label = {'BiFe_right', 'GaLa_right', 'GaMe_right', 'GlMa_right', 'PeLo_right', 'ReFe_right', 'SeTe_right', 'Sol_right', 'TeFa_right', 'TiAn_right', 'VaLa_right', 'VaMe_right'};
+emg_label = {'BiFe_right', 'GaLa_right', 'GaMe_right', 'GlMa_right', 'PeLo_right', 'ReFe_right', ... 
+    'SeTe_right', 'Sol_right', 'TeFa_right', 'TiAn_right', 'VaLa_right', 'VaMe_right'};
 
 ANALOG_label = md.children.ANALOG.children.LABELS.info.values;
 emg_idx = [];
 for label = {'Voltage.8', 'Voltage.12', 'Voltage.11', 'Voltage.2', 'Voltage.14', 'Voltage.7', ...
-        'Voltage.16', 'Voltage.13', 'Voltage.4', 'Voltage.15', 'Voltage.5', 'Voltage.6'}
+        'Voltage.16', 'Voltage.13', 'Voltage.4', 'Voltage.15', 'Voltage.6', 'Voltage.5'}
     idx = find(strcmp(ANALOG_label, label{:}), 1, 'first');
     emg_idx = [emg_idx, idx];
 end
@@ -84,8 +85,17 @@ else
     error('Invalid condition specified.');
 end
 
-r_emg_bounds = find_gait_events(r_heel_x, r_heel_y, point_framerate, gait_freq);
-l_emg_bounds = find_gait_events(l_heel_x, l_heel_y, point_framerate, gait_freq);
+try
+    r_emg_bounds = find_gait_events(r_heel_x, r_heel_y, point_framerate, gait_freq);
+catch
+    r_emg_bounds = [];
+end
+try
+    l_emg_bounds = find_gait_events(l_heel_x, l_heel_y, point_framerate, gait_freq);
+catch
+    l_emg_bounds = [];
+end
+
 
 gaitEvents = [];
 gaitEvents.r_heel_strike = r_emg_bounds;
@@ -94,13 +104,16 @@ gaitEvents.l_heel_strike = l_emg_bounds;
 label = [{'time'}, emg_label];
 data = [emg_timestamp * 1000, round(emg_data, 5)]; % -- emg data rounded -- 
 
-T_kin = array2table([l_cycle_timestamp * 1000, l_cycle_separator, r_cycle_timestamp * 1000, r_cycle_separator], ...
-    'VariableNames', {'left_time', 'left_cycles', 'right_time', 'right_cycles'});
-writetable(T_kin, fullfile(PathDat, strjoin({output_name, 'cycles.csv'}, '_')), 'Delimiter', ',');
+try
+    T_kin = array2table([l_cycle_timestamp * 1000, l_cycle_separator, r_cycle_timestamp * 1000, r_cycle_separator], ...
+        'VariableNames', {'left_time', 'left_cycles', 'right_time', 'right_cycles'});
+    writetable(T_kin, fullfile(PathDat, strjoin({output_name, 'cycles', [condition '.csv']}, '_')), 'Delimiter', ',');
+catch
+end
 
 T = array2table(data, 'VariableNames', label);
-writetable(T, fullfile(PathDat, strjoin({output_name, 'emg.csv'}, '_')), 'Delimiter', ',');
+writetable(T, fullfile(PathDat, strjoin({output_name, 'emg', [condition '.csv']}, '_')), 'Delimiter', ',');
 
-write_yaml(fullfile(PathDat, strjoin({output_name, 'gaitEvents.yaml'}, '_')), gaitEvents);
+write_yaml(fullfile(PathDat, strjoin({output_name, 'gaitEvents', [condition '.yaml']}, '_')), gaitEvents);
 
 end
