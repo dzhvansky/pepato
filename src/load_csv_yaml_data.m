@@ -21,9 +21,9 @@ emg_data = emg_data(:, index);
 
 % gait events
 gait_events = read_yaml(gaitevents_yaml_file);
-events = gait_events.([body_side(1) '_heel_strike']);
+events = gait_events.([body_side(1) '_heel_strike']) * 1000; % in miliseconds
 events = events((events >= min(emg_timestamp)) & (events <= max(emg_timestamp)));
-[~, closest_idx] = min(abs(bsxfun(@minus, repmat(emg_timestamp', [1, length(events)]), events*1000))); % find closest
+[~, closest_idx] = min(abs(bsxfun(@minus, repmat(emg_timestamp', [1, length(events)]), events))); % find closest
 
 emg_bounds = [closest_idx(1 : end-1); closest_idx(2 : end) - 1]';
 emg_timestamp = emg_timestamp / 1000; % in seconds

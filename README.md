@@ -4,9 +4,11 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 
 ## Data format
 
-[4.5. Electromyography file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#electromyography-file)
+[4.5. Electromyography file](https://github.com/aremazeilles/eurobench_documentation/blob/master/modules/ROOT/pages/data_format.adoc#611-electromyography-file)
 
-[4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#gait-events-file)
+Please specify the EMG timestamp in miliseconds (see examples from `test_data` folder)
+
+[4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/modules/ROOT/pages/data_format.adoc#612-gait-events-file)
 
 - Electromiography and Gait events files should be named the same
 - File name format (gait speed V should be from the list of [2, 4, 6] km per hour):
@@ -70,8 +72,8 @@ More information: [Eurobench website][eurobench_website]
 This project has received funding from the European Unionâ€™s Horizon 2020
 research and innovation programme under grant agreement no. 779963.
 
-The opinions and arguments expressed reflect only the authorâ€˜s view and
-reflect in no way the European Commissionâ€˜s opinions.
+The opinions and arguments expressed reflect only the authorâ€?s view and
+reflect in no way the European Commissionâ€?s opinions.
 The European Commission is not responsible for any use that may be made
 of the information it contains.
 
