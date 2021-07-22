@@ -4,9 +4,10 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 
 ## Data format
 
-[4.5. Electromyography file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#electromyography-file)
+[4.5. Electromyography file](https://github.com/aremazeilles/eurobench_documentation/blob/master/modules/ROOT/pages/data_format.adoc#611-electromyography-file)
+Please specify the EMG timestamp in miliseconds (see examples from `test_data` folder)
 
-[4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/data_format.adoc#gait-events-file)
+[4.9. Gait events file](https://github.com/aremazeilles/eurobench_documentation/blob/master/modules/ROOT/pages/data_format.adoc#612-gait-events-file)
 
 - Electromiography and Gait events files should be named the same
 - File name format (gait speed V should be from the list of [2, 4, 6] km per hour):
@@ -14,10 +15,10 @@ PErformance indicators of spatiotemporal PATterns of the spinal muscle coordinat
 subject_N_run_R_emg_speedVkmh.csv
 subject_N_run_R_gaitEvents_speedVkmh.yaml
 ```
-[Full datasets](https://yadi.sk/d/QMXiTgsKDC8-Zw) available for adults (10 subjects, both body sides) and elderly (10 subjects, right body side only).
+[Full datasets](https://drive.google.com/drive/folders/1Ih2SDcowlkUUNymiOdNzpirtviVQoUMm?usp=sharing) available for adults (10 subjects, both body sides) and elderly (10 subjects, right body side only).
 
 
-## MATLAB version >= 2015b
+## MATLAB version >= 2015b, Statistics and Signal processing toolboxes required
 (full functionality, advanced GUI, see [User Gide](PEPATO_Full_Version_User_Guide.pdf))
 ### Usage (MATLAB command window)
 

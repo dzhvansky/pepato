@@ -244,7 +244,7 @@ classdef PepatoData
             
             obj.module_info = cell(1, obj.n_files);
             
-            progress = ProgressBar('Muscle modules computing ...', obj.n_files, 'yes', 'no');
+            progress = ProgressBar('Muscle modules computing ...', obj.n_files, 'no', 'yes');
             
             for i = 1 : obj.n_files
                 N_points = obj.config.n_points;
@@ -281,7 +281,7 @@ classdef PepatoData
             obj.sacral = cell(1, obj.n_files);
             obj.lumbar = cell(1, obj.n_files);
             
-            progress = ProgressBar('Spinal maps computing ...', obj.n_files, 'yes', 'no');
+            progress = ProgressBar('Spinal maps computing ...', obj.n_files, 'no', 'yes');
             
             for i = 1 : obj.n_files
                 [emg_mean, ~, ~, ~] = emg_cycle_averaging(obj.emg_enveloped{i}, N_points, 2);
