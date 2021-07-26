@@ -82,10 +82,10 @@ classdef PepatoData
                         end
                         
                     end
+                    emg_max{i}(emg_max{i} == 0) = 1e10;
                 end
             end
             
-            emg_max(emg_max == 0) = 1e10;
         end
         
     end
