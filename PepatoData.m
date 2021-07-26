@@ -294,7 +294,7 @@ classdef PepatoData
 
                 obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', emg_label_);       
                 obj.motorpools_activation_avg{i} = squeeze(mean(reshape(obj.motorpools_activation{i}, [6 6 size(obj.motorpools_activation{i}, 2)]), 1));                      
-                disp(obj.motorpools_activation_avg{i});
+                
                 obj.sacral{i} = mean(obj.motorpools_activation_avg{i}(1:2, :), 1);
                 obj.lumbar{i} = mean(obj.motorpools_activation_avg{i}(4:5, :), 1);
 
