@@ -82,6 +82,7 @@ classdef PepatoData
                         end
                         
                     end
+                    emg_max{i}(emg_max{i} == 0) = 1e10;
                 end
             end
             
@@ -225,9 +226,7 @@ classdef PepatoData
         function obj = envelope_max_normalization(obj)            
             obj.emg_max = cell(1, obj.n_files);
             for i = 1 : obj.n_files
-                emg_max_ = max(obj.emg_enveloped{i}, [], 1);
-                emg_max_(emg_max_ == 0) = 1e10;
-                obj.emg_max{i} = emg_max_;
+                obj.emg_max{i} = max(obj.emg_enveloped{i}, [], 1);
             end
             obj.emg_max = obj.max_among_trials(obj.emg_max, obj.emg_label, obj.muscle_list, obj.n_files);
             
