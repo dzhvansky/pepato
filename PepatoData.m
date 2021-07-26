@@ -225,7 +225,9 @@ classdef PepatoData
         function obj = envelope_max_normalization(obj)            
             obj.emg_max = cell(1, obj.n_files);
             for i = 1 : obj.n_files
-                obj.emg_max{i} = max(obj.emg_enveloped{i}, [], 1);
+                emg_max_ = max(obj.emg_enveloped{i}, [], 1);
+                emg_max_(emg_max_ == 0) = 1e10;
+                obj.emg_max{i} = emg_max_;
             end
             obj.emg_max = obj.max_among_trials(obj.emg_max, obj.emg_label, obj.muscle_list, obj.n_files);
             
@@ -285,10 +287,14 @@ classdef PepatoData
             
             for i = 1 : obj.n_files
                 [emg_mean, ~, ~, ~] = emg_cycle_averaging(obj.emg_enveloped{i}, N_points, 2);
+                
+                nonzero_mask = sum(emg_mean, 1) ~= 0;
+                emg_mean = emg_mean(:, nonzero_mask);
+                emg_label_ = obj.emg_label{i}(nonzero_mask);
 
-                obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', obj.emg_label{i});       
+                obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', emg_label_);       
                 obj.motorpools_activation_avg{i} = squeeze(mean(reshape(obj.motorpools_activation{i}, [6 6 size(obj.motorpools_activation{i}, 2)]), 1));                      
-
+                disp(obj.motorpools_activation_avg{i});
                 obj.sacral{i} = mean(obj.motorpools_activation_avg{i}(1:2, :), 1);
                 obj.lumbar{i} = mean(obj.motorpools_activation_avg{i}(4:5, :), 1);
 
