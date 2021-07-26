@@ -85,6 +85,7 @@ classdef PepatoData
                 end
             end
             
+            emg_max(emg_max == 0) = 1e10;
         end
         
     end
@@ -286,7 +287,11 @@ classdef PepatoData
             for i = 1 : obj.n_files
                 [emg_mean, ~, ~, ~] = emg_cycle_averaging(obj.emg_enveloped{i}, N_points, 2);
 
-                obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', obj.emg_label{i});       
+                nonzero_mask = sum(emg_mean, 1) ~= 0;
+                emg_mean = emg_mean(:, nonzero_mask);
+                emg_label_ = obj.emg_label{i}(nonzero_mask);
+
+                obj.motorpools_activation{i} = spinalcord_detailed_sharrard(emg_mean', emg_label_);       
                 obj.motorpools_activation_avg{i} = squeeze(mean(reshape(obj.motorpools_activation{i}, [6 6 size(obj.motorpools_activation{i}, 2)]), 1));                      
 
                 obj.sacral{i} = mean(obj.motorpools_activation_avg{i}(1:2, :), 1);
