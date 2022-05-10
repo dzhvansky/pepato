@@ -438,6 +438,7 @@ classdef PepatoData
                     
                     n_conditions = length(condition_list);
                     param_output = cell(1, n_conditions);
+                    labels = condition_list;
                     for j = 1: n_conditions
                         condition = condition_list{j};
                         file_idx = find(trial_idx & strcmp(conditions, condition));
@@ -459,6 +460,7 @@ classdef PepatoData
                             end
                                     
                         else
+                            labels{1, j} = 'NaN';
                             switch param_type
                                 case 'vector'
                                     param_output{1, j} = 'NaN';
@@ -473,14 +475,14 @@ classdef PepatoData
                     fprintf(fout, [indent 'type: %s\n'], param_type);
                     switch param_type
                         case 'vector'
-                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(labels, ', '));
                             fprintf(fout, [indent 'value: [%s]\n'], strjoin(param_output, ', '));
                         case 'matrix'
-                            fprintf(fout, [indent 'row_label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'row_label: [%s]\n'], strjoin(labels, ', '));
                             fprintf(fout, [indent 'col_label: [%s]\n'], strjoin(col_labels.(param_name), ', '));
                             fprintf(fout, [indent 'value: [%s]\n'], strjoin(param_output, ', '));
                         case 'vector_of_vector'
-                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(labels, ', '));
                             fprintf(fout, [indent 'value:\n']);
                             for j = 1: n_conditions
                                 n_elements = length(strfind(param_output{1, j}, ', ')) + 1;
@@ -488,7 +490,7 @@ classdef PepatoData
                                 fprintf(fout, [indent yaml_indent yaml_indent 'value: %s\n'], param_output{1, j});
                             end
                         case 'vector_of_matrix'
-                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(conditions, ', '));
+                            fprintf(fout, [indent 'label: [%s]\n'], strjoin(labels, ', '));
                             fprintf(fout, [indent 'value:\n']);
                             for j = 1: n_conditions
                                 n_rows = length(strfind(param_output{1, j}, '[')) - 1;

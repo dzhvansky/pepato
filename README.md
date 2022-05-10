@@ -29,7 +29,7 @@ subject_N_run_R_gaitEvents_speedVkmh.yaml
 >>> ./run_pepato left BLF db_healthy_adults_8m ./test_data/input/subject_0_run_0_emg_speed2kmh.csv ./test_data/input/subject_0_run_0_gaitEvents_speed2kmh.yaml ./test_data/input/subject_0_run_0_emg_speed4kmh.csv ./test_data/input/subject_0_run_0_gaitEvents_speed4kmh.yaml ./test_data/input/subject_0_run_0_emg_speed6kmh.csv ./test_data/input/subject_0_run_0_gaitEvents_speed6kmh.yaml ./test_data
 ```
 
-- Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input files (random order allowed) and output directory
+- Set body side, NMF stop criteria, database filename (from `pepato/db` folder), input files (random order and/or incomplete speed set allowed) and output directory
 - Body side should be from the list of ['left', 'right']
 - NMF stop criteria should be from the list of ['BLF', 'R2=0.90', 'N=4']
 - Databases available: db_healthy_adults_8m, db_healthy_elderly_8m
